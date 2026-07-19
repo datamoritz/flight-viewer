@@ -1,0 +1,587 @@
+:root {
+  --bg: #05070c;
+  --ink: #eef2f9;
+  --ink-dim: #a7b0c2;
+  --accent: #38bdf8;
+  --accent-strong: #7dd3fc;
+  --danger: #f87171;
+  --glass-bg: rgba(13, 17, 26, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  --radius: 14px;
+  /* Set at runtime by useGoogleBannerOffset when Google's alpha-channel dev
+     banner is present, so floating controls never sit underneath it. */
+  --gmaps-banner-height: 0px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+button,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- App shell ---------- */
+
+.app-shell {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg);
+  /* Prevent pull-to-refresh/overscroll-bouncing chaining to the document on
+     touch devices. Deliberately NOT touch-action:none here — the 3D map
+     manages its own touch gesture handling (pan/orbit/pinch-zoom) internally
+     and must keep receiving default touch-action; only the specific regions
+     *we* handle (profile scrub, resize handle) opt out of it themselves. */
+  overscroll-behavior: none;
+}
+
+.map-area {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---------- 3D map ---------- */
+
+.map3d-root {
+  position: absolute;
+  inset: 0;
+}
+
+.map3d-container {
+  width: 100%;
+  height: 100%;
+}
+
+.map3d-status-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #0b1220 0%, #05070c 100%);
+  color: var(--ink-dim);
+  text-align: center;
+  padding: 2rem;
+}
+
+.map3d-status-error {
+  color: var(--danger);
+  max-width: 32rem;
+}
+
+/* ---------- Pilot marker ---------- */
+
+.pilot-marker-content {
+  position: relative;
+  width: 5rem;
+  height: 6.6rem;
+  pointer-events: none;
+  color: #fff;
+  transform-origin: 50% 100%;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 12px rgba(0, 0, 0, 0.7);
+}
+
+.pilot-marker-cap {
+  position: absolute;
+  left: 50%;
+  bottom: 4.9rem;
+  width: 1rem;
+  height: 0.28rem;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #dc2626;
+  box-shadow: 0 0 0 1px rgba(127, 29, 29, 0.9);
+}
+
+.pilot-marker-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 1.25rem;
+  width: 0.42rem;
+  height: 3.75rem;
+  transform: translateX(-50%);
+  border-radius: 999px 999px 0.16rem 0.16rem;
+  background: #0b0b0b;
+}
+
+.pilot-marker-head {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1.15rem;
+  height: 1.35rem;
+  transform: translateX(-50%);
+  clip-path: polygon(50% 100%, 0 22%, 16% 0, 84% 0, 100% 22%);
+  box-shadow: 0 0 0 1px rgba(127, 29, 29, 0.95);
+}
+
+.pilot-label-name {
+  position: absolute;
+  left: calc(50% - 1.28rem);
+  bottom: 1.28rem;
+  height: 4.1rem;
+  transform: rotate(180deg);
+  transform-origin: 50% 50%;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.pilot-label-altitude {
+  position: absolute;
+  left: 50%;
+  bottom: -1.02rem;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  opacity: 0.86;
+  white-space: nowrap;
+}
+
+/* ---------- On-screen camera controls ---------- */
+
+.camera-controls {
+  position: absolute;
+  top: calc(1rem + var(--gmaps-banner-height));
+  right: 1rem;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  padding: 8px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+}
+
+.camera-control-button {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: 9px;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+}
+
+.camera-control-button:hover {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.camera-control-button:active {
+  transform: scale(0.94);
+  background: rgba(56, 189, 248, 0.28);
+}
+
+.camera-control-button:first-child {
+  grid-column: 1 / -1;
+  width: 100%;
+  font-weight: 700;
+}
+
+/* ---------- Floating glass controls ---------- */
+
+.control-cluster {
+  position: absolute;
+  top: calc(1rem + var(--gmaps-banner-height));
+  left: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+
+.control-cluster > * {
+  pointer-events: auto;
+}
+
+.upload-button,
+.follow-button,
+.icon-button {
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 999px;
+  color: var(--ink);
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.upload-button:hover,
+.follow-button:hover:not(:disabled),
+.icon-button:hover:not(:disabled) {
+  background: rgba(30, 38, 56, 0.75);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.upload-button:active,
+.follow-button:active:not(:disabled),
+.icon-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.upload-button:disabled,
+.follow-button:disabled,
+.icon-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.follow-button.is-active {
+  color: var(--accent-strong);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.icon-button {
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  border-radius: 50%;
+}
+
+.icon-button-primary {
+  color: var(--accent-strong);
+  border-color: rgba(56, 189, 248, 0.45);
+}
+
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+}
+
+.playback-time {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  min-width: 6.5rem;
+}
+
+.playback-speed select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: var(--ink);
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+}
+
+/* ---------- Empty state ---------- */
+
+.empty-state {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(5, 7, 12, 0.15) 0%, rgba(5, 7, 12, 0.55) 100%);
+}
+
+.empty-state-card {
+  pointer-events: auto;
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 20px;
+  padding: 2rem 2.4rem;
+  max-width: 28rem;
+  text-align: center;
+}
+
+.empty-state-card h1 {
+  margin: 0 0 0.6rem;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+}
+
+.empty-state-card p {
+  margin: 0;
+  color: var(--ink-dim);
+  line-height: 1.6;
+}
+
+/* ---------- Error banner + drag overlay ---------- */
+
+.error-banner {
+  position: absolute;
+  top: calc(5rem + var(--gmaps-banner-height));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(60, 15, 15, 0.75);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #fecaca;
+  border-radius: var(--radius);
+  padding: 0.6rem 0.9rem;
+  max-width: min(90vw, 32rem);
+  box-shadow: var(--glass-shadow);
+}
+
+.error-banner button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.error-banner button:hover {
+  opacity: 1;
+}
+
+.drag-overlay {
+  position: absolute;
+  inset: 0.75rem;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(56, 189, 248, 0.6);
+  border-radius: 20px;
+  background: rgba(5, 7, 12, 0.55);
+  color: var(--accent-strong);
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+/* ---------- Altitude profile panel ---------- */
+
+.altitude-panel {
+  position: absolute;
+  /* Stops short of the map's bottom-left corner so Google's attribution badge,
+     pinned there, is never covered by this translucent overlay. */
+  left: 190px;
+  right: 0;
+  bottom: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  /* Mostly transparent so the terrain reads clearly through the chart, like the
+     reference viewer — just a faint darkening toward the bottom for contrast. */
+  background: linear-gradient(
+    180deg,
+    rgba(5, 7, 12, 0) 0%,
+    rgba(5, 7, 12, 0.12) 60%,
+    rgba(5, 7, 12, 0.32) 100%
+  );
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.altitude-panel-handle {
+  flex: 0 0 auto;
+  width: 100%;
+  /* Visually slim, but tall enough to be a comfortable touch target
+     (~24px) without needing a separate invisible hit-area element. */
+  height: 24px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: ns-resize;
+  touch-action: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.altitude-panel-handle::before {
+  content: '';
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  transition: background 0.15s ease;
+}
+
+.altitude-panel-handle:hover::before,
+.altitude-panel-handle:focus-visible::before {
+  background: var(--accent);
+}
+
+.altitude-panel-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 1rem 0.35rem;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.02em;
+}
+
+.altitude-panel-header span:first-child {
+  color: var(--ink);
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.altitude-panel-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-dim);
+}
+
+.altitude-svg {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.altitude-area {
+  fill: rgba(56, 189, 248, 0.1);
+  stroke: none;
+}
+
+.altitude-line {
+  fill: none;
+  stroke: var(--accent-strong);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+.altitude-gridline {
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 1;
+}
+
+.altitude-axis-label {
+  fill: #e5e9f2;
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
+
+.altitude-cursor {
+  stroke: var(--accent-strong);
+  stroke-width: 1.5;
+}
+
+@media (max-width: 720px) {
+  .control-cluster {
+    top: 0.6rem;
+    left: 0.6rem;
+    right: 0.6rem;
+  }
+
+  .playback-time {
+    min-width: 0;
+  }
+
+  /* Comfortable touch targets (~44px) on small/touch screens. */
+  .icon-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .upload-button,
+  .playback-controls {
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+  }
+
+  .camera-control-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .altitude-panel {
+    /* Attribution badge is narrower on small viewports too. */
+    left: 130px;
+  }
+}
