@@ -13,6 +13,8 @@ test.describe('upload and playback', () => {
     await expect(page.getByText('Flight Viewer')).toBeVisible()
     await expect(page.getByRole('region', { name: 'Flight library' })).toBeVisible()
     await expect(page.getByText('Add your first flight')).toBeVisible()
+    await expect(page.getByText('Select a flight from the library or drag and drop an IGC file.')).toBeVisible()
+    await expect(page.getByText('Designed by Moritz Knödler')).toBeVisible()
     await expect(page.locator('.altitude-panel')).toHaveCount(0)
     expect(errors).toEqual([])
   })
@@ -22,6 +24,7 @@ test.describe('upload and playback', () => {
     await uploadSampleFlight(page)
 
     await expect(page.getByText('Flight Viewer')).toHaveCount(0)
+    await expect(page.getByText('Designed by Moritz Knödler')).toHaveCount(0)
     await expect(page.locator('.playback-time')).toContainText('11:00:00')
 
     const trackCreated = await page.evaluate(() => {

@@ -966,7 +966,18 @@ select {
   cursor: pointer;
 }
 .empty-state-action:hover { background: rgba(255, 255, 255, 0.18); }
-.empty-state-hint { display: block; margin-top: 0.8rem; color: var(--ink-dim); font-size: 0.72rem; }
+.opening-credit {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 0.9rem;
+  z-index: 7;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
 
 /* ---------- Error banner + drag overlay ---------- */
 

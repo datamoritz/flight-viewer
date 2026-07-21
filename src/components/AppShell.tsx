@@ -467,19 +467,18 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
               <p>
                 {!hasLoadedFlights
                   ? 'Preparing your flight library.'
-                  : flights.length > 0
-                    ? 'Select a flight from the open library to view its route, altitude and moments.'
-                    : 'Open an IGC track to explore your flight in 3D.'}
+                  : 'Select a flight from the library or drag and drop an IGC file.'}
               </p>
               {hasLoadedFlights && flights.length === 0 && (
                 <button type="button" className="empty-state-action" onClick={() => uploadInputRef.current?.click()}>
                   Choose IGC file
                 </button>
               )}
-              {hasLoadedFlights && <span className="empty-state-hint">You can also drag and drop an IGC file anywhere.</span>}
             </div>
           </div>
         )}
+
+        {!flight && <div className="opening-credit">Designed by Moritz Knödler</div>}
 
         {uploadError && (
           <div className="error-banner" role="alert">
