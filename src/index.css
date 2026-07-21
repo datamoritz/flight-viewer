@@ -917,8 +917,11 @@ select {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(5, 7, 12, 0.15) 0%, rgba(5, 7, 12, 0.55) 100%);
+  background: radial-gradient(circle at center, transparent 0%, rgba(5, 7, 12, 0.2) 100%);
+  transition: left 0.2s ease;
 }
+
+.empty-state.is-library-open { left: min(26rem, 36vw); }
 
 .empty-state-card {
   pointer-events: auto;
@@ -928,14 +931,14 @@ select {
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: 20px;
-  padding: 2rem 2.4rem;
-  max-width: 28rem;
-  text-align: center;
+  padding: 1.55rem 1.75rem;
+  max-width: 25rem;
+  text-align: left;
 }
 
 .empty-state-card h1 {
-  margin: 0 0 0.6rem;
-  font-size: 1.35rem;
+  margin: 0.3rem 0 0.55rem;
+  font-size: 1.4rem;
   letter-spacing: -0.01em;
 }
 
@@ -944,6 +947,26 @@ select {
   color: var(--ink-dim);
   line-height: 1.6;
 }
+
+.empty-state-kicker {
+  color: var(--ink-dim);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.empty-state-action {
+  margin-top: 1rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--ink);
+  cursor: pointer;
+}
+.empty-state-action:hover { background: rgba(255, 255, 255, 0.18); }
+.empty-state-hint { display: block; margin-top: 0.8rem; color: var(--ink-dim); font-size: 0.72rem; }
 
 /* ---------- Error banner + drag overlay ---------- */
 
@@ -1186,6 +1209,9 @@ select {
     left: 0.6rem;
     width: calc(100vw - 1.2rem);
   }
+
+  .empty-state.is-library-open { left: 0; }
+  .empty-state.is-library-open .empty-state-card { display: none; }
 
   .moment-detail-card {
     left: 0.6rem;

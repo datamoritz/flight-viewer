@@ -43,7 +43,8 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
   const [showDropCurtain, setShowDropCurtain] = useState(true)
   const [trackStrokeWidth, setTrackStrokeWidth] = useState(2)
   const [showTrackStyle, setShowTrackStyle] = useState(false)
-  const [isFlightsOpen, setIsFlightsOpen] = useState(false)
+  const [isFlightsOpen, setIsFlightsOpen] = useState(true)
+  const [hasLoadedFlights, setHasLoadedFlights] = useState(false)
   const [isBusy, setIsBusy] = useState(false)
   const [flights, setFlights] = useState<FlightSummary[]>([])
   const [activeFlightId, setActiveFlightId] = useState<string | null>(null)
@@ -82,7 +83,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
   useEffect(() => {
     void refreshFlights().catch((err) =>
       setUploadError(err instanceof Error ? err.message : 'Could not load the flight library.'),
-    )
+    ).finally(() => setHasLoadedFlights(true))
   }, [refreshFlights])
 
   const handleFile = useCallback(async (file: File) => {
@@ -365,38 +366,47 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
           onSelectMoment={selectComment}
         />
 
-        <button
-          type="button"
-          className={`drop-curtain-toggle ${showDropCurtain ? 'is-active' : ''}`}
-          onClick={() => setShowDropCurtain((value) => !value)}
-          aria-pressed={showDropCurtain}
-          aria-label={showDropCurtain ? 'Hide vertical position curtain' : 'Show vertical position curtain'}
-          title={showDropCurtain ? 'Hide vertical position curtain' : 'Show vertical position curtain'}
-        >
-          <span className="drop-curtain-icon" aria-hidden="true" />
-        </button>
+        {flight && (
+          <>
+            <button
+              type="button"
+              className={`drop-curtain-toggle ${showDropCurtain ? 'is-active' : ''}`}
+              onClick={() => setShowDropCurtain((value) => !value)}
+              aria-pressed={showDropCurtain}
+              aria-label={showDropCurtain ? 'Hide vertical position curtain' : 'Show vertical position curtain'}
+              title={showDropCurtain ? 'Hide vertical position curtain' : 'Show vertical position curtain'}
+            >
+              <span className="drop-curtain-icon" aria-hidden="true" />
+            </button>
 
-        <div className="track-style-control">
-          <button
-            type="button"
-            className={`track-style-toggle ${showTrackStyle ? 'is-active' : ''}`}
-            onClick={() => setShowTrackStyle((value) => !value)}
-            aria-expanded={showTrackStyle}
-            aria-label="Adjust flight line thickness"
-            title="Flight line thickness"
-          >
-            <span className="track-style-icon" aria-hidden="true" />
-          </button>
-          {showTrackStyle && (
-            <div className="track-style-popover">
-              <label htmlFor="track-width">Flight line <output>{trackStrokeWidth}px</output></label>
-              <input id="track-width" type="range" min="1" max="8" step="0.5" value={trackStrokeWidth} onChange={(event) => setTrackStrokeWidth(Number(event.currentTarget.value))} />
+            <div className="track-style-control">
+              <button
+                type="button"
+                className={`track-style-toggle ${showTrackStyle ? 'is-active' : ''}`}
+                onClick={() => setShowTrackStyle((value) => !value)}
+                aria-expanded={showTrackStyle}
+                aria-label="Adjust flight line thickness"
+                title="Flight line thickness"
+              >
+                <span className="track-style-icon" aria-hidden="true" />
+              </button>
+              {showTrackStyle && (
+                <div className="track-style-popover">
+                  <label htmlFor="track-width">Flight line <output>{trackStrokeWidth}px</output></label>
+                  <input id="track-width" type="range" min="1" max="8" step="0.5" value={trackStrokeWidth} onChange={(event) => setTrackStrokeWidth(Number(event.currentTarget.value))} />
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
 
         <div className="control-cluster">
-          <button type="button" className="upload-button" onClick={() => setIsFlightsOpen((value) => !value)}>
+          <button
+            type="button"
+            className="upload-button"
+            onClick={() => setIsFlightsOpen((value) => !value)}
+            aria-expanded={isFlightsOpen}
+          >
             Flights
           </button>
           <input
@@ -411,10 +421,14 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
               event.target.value = ''
             }}
           />
-          <button type="button" className="upload-button" onClick={addMoment} disabled={!flight || !activeFlightId}>
-            Add comment
-          </button>
-          <PlaybackControls />
+          {flight && (
+            <>
+              <button type="button" className="upload-button" onClick={addMoment} disabled={!activeFlightId}>
+                Add comment
+              </button>
+              <PlaybackControls />
+            </>
+          )}
         </div>
 
         {isFlightsOpen && (
@@ -423,12 +437,12 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
             activeFlightId={activeFlightId}
             repositoryMode={repository.mode}
             isBusy={isBusy}
-            onUpload={handleFile}
-            onSelect={(flightId) =>
-              void loadStoredFlight(flightId).catch((err) =>
-                setUploadError(err instanceof Error ? err.message : 'Could not load this flight.'),
-              )
-            }
+            onRequestUpload={() => uploadInputRef.current?.click()}
+            onSelect={(flightId) => {
+              void loadStoredFlight(flightId)
+                .then(() => setIsFlightsOpen(false))
+                .catch((err) => setUploadError(err instanceof Error ? err.message : 'Could not load this flight.'))
+            }}
             onRename={(record, title) =>
               void handleRenameFlight(record, title).catch((err) =>
                 setUploadError(err instanceof Error ? err.message : 'Could not rename this flight.'),
@@ -444,13 +458,25 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
         )}
 
         {!flight && (
-          <div className="empty-state">
+          <div className={`empty-state ${isFlightsOpen ? 'is-library-open' : ''}`}>
             <div className="empty-state-card">
-              <h1>Flight Viewer</h1>
+              <span className="empty-state-kicker">Flight Viewer</span>
+              <h1>
+                {!hasLoadedFlights ? 'Loading your flights…' : flights.length > 0 ? 'Choose a flight to begin' : 'Add your first flight'}
+              </h1>
               <p>
-                Drag and drop an IGC file anywhere on this window, or use{' '}
-                <strong>Flights</strong> above to upload or reopen a flight.
+                {!hasLoadedFlights
+                  ? 'Preparing your flight library.'
+                  : flights.length > 0
+                    ? 'Select a flight from the open library to view its route, altitude and moments.'
+                    : 'Open an IGC track to explore your flight in 3D.'}
               </p>
+              {hasLoadedFlights && flights.length === 0 && (
+                <button type="button" className="empty-state-action" onClick={() => uploadInputRef.current?.click()}>
+                  Choose IGC file
+                </button>
+              )}
+              {hasLoadedFlights && <span className="empty-state-hint">You can also drag and drop an IGC file anywhere.</span>}
             </div>
           </div>
         )}
@@ -515,11 +541,13 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
             }
           />
         )}
-        <AltitudeProfile
-          moments={moments}
-          selectedMomentId={selectedMomentId}
-          onSelectMoment={selectComment}
-        />
+        {flight && (
+          <AltitudeProfile
+            moments={moments}
+            selectedMomentId={selectedMomentId}
+            onSelectMoment={selectComment}
+          />
+        )}
       </div>
     </div>
   )

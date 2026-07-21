@@ -100,17 +100,7 @@ export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: A
   }, [flight, geometry])
 
   if (!flight || !geometry) {
-    return (
-      <div className="altitude-panel" style={{ height }}>
-        <button
-          type="button"
-          className="altitude-panel-handle"
-          onPointerDown={onHandlePointerDown}
-          aria-label="Resize altitude profile panel"
-        />
-        <div className="altitude-panel-empty">Load a flight to see its altitude profile.</div>
-      </div>
-    )
+    return null
   }
 
   const timeToMs = (clientX: number): number => {

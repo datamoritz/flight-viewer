@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import type { FlightSummary } from '../../data/types'
 import { countryFlagForCoordinates } from '../../utils/locationMetadata'
 
@@ -7,7 +7,7 @@ export interface FlightLibraryPanelProps {
   activeFlightId: string | null
   repositoryMode: string
   isBusy: boolean
-  onUpload: (file: File) => void
+  onRequestUpload: () => void
   onSelect: (flightId: string) => void
   onRename: (flight: FlightSummary, title: string) => void
   onDelete: (flight: FlightSummary) => void
@@ -34,13 +34,12 @@ export function FlightLibraryPanel({
   flights,
   activeFlightId,
   isBusy,
-  onUpload,
+  onRequestUpload,
   onSelect,
   onRename,
   onDelete,
   onClose,
 }: FlightLibraryPanelProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
   const [editingFlightId, setEditingFlightId] = useState<string | null>(null)
   const [draftTitle, setDraftTitle] = useState('')
 
@@ -51,7 +50,7 @@ export function FlightLibraryPanel({
           <h2>
             Flights
             <span className="flight-count">{flights.length}</span>
-            <button type="button" className="flight-library-add" onClick={() => inputRef.current?.click()} disabled={isBusy} aria-label="Add IGC flight" title="Add IGC flight">
+            <button type="button" className="flight-library-add" onClick={onRequestUpload} disabled={isBusy} aria-label="Add IGC flight" title="Add IGC flight">
               <span aria-hidden="true" />
             </button>
           </h2>
@@ -63,19 +62,6 @@ export function FlightLibraryPanel({
           </button>
         </div>
       </div>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".igc,.IGC,application/octet-stream,text/plain"
-        className="visually-hidden"
-        aria-label="Upload IGC file"
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          if (file) onUpload(file)
-          event.target.value = ''
-        }}
-      />
 
       <div className="flight-library-list">
         {flights.length === 0 ? (

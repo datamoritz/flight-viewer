@@ -8,7 +8,7 @@ const RANGE_FACTOR = 0.955
 const MIN_TILT = 0
 const MAX_TILT = 88
 const MIN_RANGE = 150
-const MAX_RANGE = 300_000
+const MAX_RANGE = 30_000_000
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))

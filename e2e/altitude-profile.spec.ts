@@ -11,8 +11,8 @@ test.describe('altitude profile', () => {
 
     await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5)
     const timeAfterClick = await page.locator('.playback-time').textContent()
-    expect(timeAfterClick).not.toBe('04:00:00 MDT')
-    expect(timeAfterClick).not.toBe('04:14:55 MDT')
+    expect(timeAfterClick).not.toContain('11:00:00')
+    expect(timeAfterClick).not.toContain('11:14:55')
   })
 
   test('dragging in the profile scrubs continuously', async ({ page }) => {
@@ -35,7 +35,7 @@ test.describe('altitude profile', () => {
 
     // Time should have advanced monotonically as the drag moved rightward.
     const parseSeconds = (t: string) => {
-      const [h, m, s] = t.replace(/ (UTC|MDT|MST)$/, '').split(':').map(Number)
+      const [h, m, s] = t.slice(0, 8).split(':').map(Number)
       return h * 3600 + m * 60 + s
     }
     for (let i = 1; i < times.length; i++) {

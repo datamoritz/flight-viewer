@@ -17,10 +17,10 @@ import type {
 } from '../../types/maps3d'
 
 const DEFAULT_CAMERA = {
-  center: { lat: 46.55, lng: 8.0, altitude: 0 },
-  range: 80_000,
+  center: { lat: 20, lng: 0, altitude: 0 },
+  range: 20_000_000,
   heading: 0,
-  tilt: 45,
+  tilt: 0,
 }
 
 const DROP_LINE_WIDTH = 3
@@ -142,6 +142,8 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
   const containerRef = useRef<HTMLDivElement>(null)
   const maps3dRef = useRef<Maps3DLibrary | null>(null)
   const trackRef = useRef<TrackSegment[]>([])
+  const trackStrokeWidthRef = useRef(trackStrokeWidth)
+  trackStrokeWidthRef.current = trackStrokeWidth
   const dropLinesRef = useRef<DropLine[]>([])
   const momentMarkersRef = useRef<MarkerElement[]>([])
   const momentSelectRef = useRef(onSelectMoment)
@@ -275,7 +277,7 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
       const polyline = new maps3d.Polyline3DElement({
         path: [segment.points[0]],
         strokeColor: segment.color,
-        strokeWidth: trackStrokeWidth,
+        strokeWidth: trackStrokeWidthRef.current,
         altitudeMode: 'ABSOLUTE',
         drawsOccludedSegments: true,
       })
