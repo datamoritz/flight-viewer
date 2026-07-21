@@ -467,7 +467,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
               <p>
                 {!hasLoadedFlights
                   ? 'Preparing your flight library.'
-                  : 'Select a flight from the library or drag and drop an IGC file.'}
+                  : 'Select a flight from the library on the left or drag and drop an IGC file.'}
               </p>
               {hasLoadedFlights && flights.length === 0 && (
                 <button type="button" className="empty-state-action" onClick={() => uploadInputRef.current?.click()}>
