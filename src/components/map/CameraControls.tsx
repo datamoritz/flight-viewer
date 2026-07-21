@@ -65,6 +65,39 @@ function HoldButton({ label, title, onStep, children }: HoldButtonProps) {
   )
 }
 
+function LiveCompass({ map }: { map: Map3DElement }) {
+  const needleRef = useRef<SVGGElement | null>(null)
+
+  useEffect(() => {
+    let frameId: number
+    let previousHeading = Number.NaN
+
+    const syncHeading = () => {
+      const heading = ((map.heading ?? 0) + 360) % 360
+      if (heading !== previousHeading && needleRef.current) {
+        previousHeading = heading
+        needleRef.current.style.transform = `rotate(${-heading}deg)`
+        needleRef.current.parentElement?.setAttribute('data-heading', heading.toFixed(1))
+      }
+      frameId = requestAnimationFrame(syncHeading)
+    }
+
+    frameId = requestAnimationFrame(syncHeading)
+    return () => cancelAnimationFrame(frameId)
+  }, [map])
+
+  return (
+    <svg className="compass-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <circle className="compass-ring" cx="16" cy="16" r="14" />
+      <g ref={needleRef} className="compass-needle">
+        <path className="compass-north" d="M16 3 L21 17 L16 14 L11 17 Z" />
+        <path className="compass-south" d="M16 29 L11 15 L16 18 L21 15 Z" />
+      </g>
+      <circle className="compass-hub" cx="16" cy="16" r="1.7" />
+    </svg>
+  )
+}
+
 /**
  * Always-visible on-screen camera controls (rotate, tilt, zoom, face north),
  * in the spirit of the reference viewer's navigation widget. These adjust
@@ -102,7 +135,7 @@ export function CameraControls({ map, markCameraAnimation }: CameraControlsProps
   return (
     <div className="camera-controls" role="group" aria-label="Camera controls">
       <button type="button" className="camera-control-button" aria-label="Face north" title="Face north" onClick={faceNorth}>
-        <span className="compass-icon" aria-hidden="true">N</span>
+        <LiveCompass map={map} />
       </button>
       <HoldButton label="Rotate left" title="Rotate left (hold to keep rotating)" onStep={rotate(1)}>
         ↶

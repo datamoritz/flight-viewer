@@ -59,6 +59,18 @@ test.describe('on-screen camera controls', () => {
     expect(headingAfter).not.toBe(headingBefore)
   })
 
+  test('compass follows the view heading and resets north when tapped', async ({ page }) => {
+    await gotoWithMockedMaps(page)
+    const mapSelector = '.map3d-container > :first-child'
+    await page.locator(mapSelector).evaluate((map: Element & { heading?: number }) => { map.heading = 90 })
+
+    await expect(page.locator('.compass-icon')).toHaveAttribute('data-heading', '90.0')
+    await expect(page.locator('.compass-needle')).toHaveCSS('transform', 'matrix(0, -1, 1, 0, 0, 0)')
+
+    await page.getByRole('button', { name: 'Face north' }).click()
+    await expect(page.locator('.compass-icon')).toHaveAttribute('data-heading', '0.0')
+  })
+
   test('zoom controls change the camera range', async ({ page }) => {
     await gotoWithMockedMaps(page)
     await uploadSampleFlight(page)

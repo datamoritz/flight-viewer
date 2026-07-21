@@ -362,7 +362,26 @@ select {
   width: 100%;
 }
 
-.compass-icon { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; }
+.compass-icon {
+  width: 1.65rem;
+  height: 1.65rem;
+  overflow: visible;
+}
+
+.compass-ring {
+  fill: rgba(4, 7, 13, 0.42);
+  stroke: rgba(255, 255, 255, 0.26);
+  stroke-width: 1;
+}
+
+.compass-needle {
+  transform-origin: 16px 16px;
+  transition: transform 80ms linear;
+}
+
+.compass-north { fill: #ef4444; }
+.compass-south { fill: rgba(226, 232, 240, 0.82); }
+.compass-hub { fill: #f8fafc; }
 
 /* ---------- Floating glass controls ---------- */
 
