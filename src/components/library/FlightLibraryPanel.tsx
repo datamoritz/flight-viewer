@@ -53,7 +53,7 @@ export function FlightLibraryPanel({
         </div>
         <div className="flight-library-header-actions">
           <button type="button" className="flight-library-add" onClick={() => inputRef.current?.click()} disabled={isBusy} aria-label="Add IGC flight" title="Add IGC flight">
-            +
+            <span aria-hidden="true" />
           </button>
           <button type="button" className="panel-close-button" onClick={onClose} aria-label="Close flights panel">
             ×

@@ -1,6 +1,6 @@
 /**
  * Minimal typings for the Google Maps Platform 3D Maps JS API (`google.maps.maps3d`),
- * an alpha/preview library not yet covered by `@types/google.maps`.
+ * not yet covered by `@types/google.maps`.
  * Reference: https://developers.google.com/maps/documentation/javascript/reference/3d-map
  */
 
@@ -28,6 +28,7 @@ export interface Map3DCameraOptions {
 
 export interface Map3DElementOptions extends Partial<Map3DCameraOptions> {
   mode?: MapMode
+  defaultUIHidden?: boolean
   defaultUIDisabled?: boolean
   minAltitude?: number
   maxAltitude?: number
@@ -45,6 +46,7 @@ export interface Map3DElement extends HTMLElement {
   tilt?: number
   roll?: number
   mode?: MapMode
+  defaultUIHidden?: boolean
   flyCameraTo(options: FlyCameraOptions): void
   flyCameraAround(options: {
     camera: Map3DCameraOptions

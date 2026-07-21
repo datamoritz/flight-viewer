@@ -186,6 +186,7 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
           heading: DEFAULT_CAMERA.heading,
           tilt: DEFAULT_CAMERA.tilt,
           mode: 'SATELLITE',
+          defaultUIHidden: true,
         })
         el.style.width = '100%'
         el.style.height = '100%'
@@ -520,7 +521,7 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
   return (
     <div className="map3d-root">
       <div ref={containerRef} className="map3d-container" />
-      <CameraControls map={map} markCameraAnimation={markCameraAnimation} />
+      <CameraControls map={map} />
       {showOverlay && (
         <div className="map3d-status-overlay" role="status">
           {overlayError ? (

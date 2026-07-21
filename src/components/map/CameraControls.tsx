@@ -16,8 +16,6 @@ function clamp(value: number, min: number, max: number): number {
 
 export interface CameraControlsProps {
   map: Map3DElement | null
-  /** Suppresses the follow loop's center writes for the duration of a camera animation. */
-  markCameraAnimation: (durationMillis: number) => void
 }
 
 interface HoldButtonProps {
@@ -66,13 +64,13 @@ function HoldButton({ label, title, onStep, children }: HoldButtonProps) {
 }
 
 /**
- * Always-visible on-screen camera controls (rotate, tilt, zoom, face north),
+ * Always-visible on-screen camera controls (rotate, tilt, zoom, fullscreen),
  * in the spirit of the reference viewer's navigation widget. These adjust
  * heading/tilt/range directly — never `center` — so they compose cleanly with
  * the always-follow camera and work regardless of mouse/trackpad gesture
  * support.
  */
-export function CameraControls({ map, markCameraAnimation }: CameraControlsProps) {
+export function CameraControls({ map }: CameraControlsProps) {
   if (!map) return null
 
   const rotate = (direction: 1 | -1) => () => {
@@ -85,31 +83,14 @@ export function CameraControls({ map, markCameraAnimation }: CameraControlsProps
     const factor = direction === 1 ? RANGE_FACTOR : 1 / RANGE_FACTOR
     map.range = clamp((map.range ?? 1000) * factor, MIN_RANGE, MAX_RANGE)
   }
-  const faceNorth = () => {
-    const durationMillis = 500
-    markCameraAnimation(durationMillis)
-    map.flyCameraTo({
-      endCamera: {
-        center: map.center ?? { lat: 0, lng: 0, altitude: 0 },
-        heading: 0,
-        tilt: map.tilt,
-        range: map.range,
-      },
-      durationMillis,
-    })
+  const toggleFullscreen = () => {
+    const shell = map.closest<HTMLElement>('.app-shell')
+    if (document.fullscreenElement) void document.exitFullscreen()
+    else if (shell) void shell.requestFullscreen()
   }
 
   return (
     <div className="camera-controls" role="group" aria-label="Camera controls">
-      <button
-        type="button"
-        className="camera-control-button"
-        aria-label="Face north"
-        title="Face north"
-        onClick={faceNorth}
-      >
-        <span className="compass-icon" aria-hidden="true">◆</span>
-      </button>
       <HoldButton label="Rotate left" title="Rotate left (hold to keep rotating)" onStep={rotate(1)}>
         ↶
       </HoldButton>
@@ -128,6 +109,11 @@ export function CameraControls({ map, markCameraAnimation }: CameraControlsProps
       <HoldButton label="Zoom out" title="Zoom out (hold to keep zooming)" onStep={zoom(-1)}>
         −
       </HoldButton>
+      <button type="button" className="camera-control-button" onClick={toggleFullscreen} aria-label="Toggle fullscreen" title="Toggle fullscreen">
+        <svg className="fullscreen-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5" />
+        </svg>
+      </button>
     </div>
   )
 }
