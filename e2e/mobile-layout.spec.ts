@@ -25,10 +25,20 @@ test.describe('mobile layout', () => {
     const panelBox = await page.locator('.altitude-panel').boundingBox()
     expect(panelBox?.width).toBeGreaterThan(360)
 
-    const flightsBox = await page.getByRole('button', { name: 'Flights', exact: true }).boundingBox()
     const playbackBox = await page.locator('.playback-controls').boundingBox()
-    expect(playbackBox?.y).toBeGreaterThan((flightsBox?.y ?? 0) + (flightsBox?.height ?? 0))
+    const flightsBox = await page.getByRole('button', { name: 'Flights', exact: true }).boundingBox()
+    const commentButtonBox = await page.getByRole('button', { name: 'Add comment' }).boundingBox()
+    expect(playbackBox?.y).toBeLessThan(flightsBox?.y ?? 0)
+    expect(commentButtonBox?.y).toBeGreaterThan((flightsBox?.y ?? 0) + (flightsBox?.height ?? 0))
+    expect(commentButtonBox?.width).toBeLessThan(40)
+    await expect(page.getByRole('button', { name: 'Hide vertical position curtain' })).toBeHidden()
+    const northBox = await page.getByRole('button', { name: 'Face north' }).boundingBox()
+    const thicknessBox = await page.getByRole('button', { name: 'Adjust flight line thickness' }).boundingBox()
+    expect(thicknessBox?.y).toBeGreaterThan((northBox?.y ?? 0) + (northBox?.height ?? 0))
     await expect(page.locator('.playback-icon')).toHaveCount(2)
+
+    await page.getByRole('button', { name: 'Play' }).click()
+    await expect(page.locator('.moment-detail-card')).toHaveCount(0)
 
     await page.getByRole('button', { name: 'Add comment' }).click()
     await expect(page.getByRole('button', { name: 'Add pictures' })).toBeVisible()

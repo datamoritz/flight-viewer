@@ -383,6 +383,8 @@ select {
   pointer-events: auto;
 }
 
+.add-comment-icon { display: none; }
+
 .upload-button,
 .follow-button,
 .icon-button {
@@ -1221,9 +1223,9 @@ select {
     top: 0.6rem;
     left: 0.6rem;
     right: 3.7rem;
-    display: grid;
-    grid-template-columns: max-content max-content;
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 0.45rem;
   }
 
@@ -1238,8 +1240,25 @@ select {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32);
   }
 
+  .flight-toggle-button { order: 2; }
+
+  .add-comment-button {
+    order: 3;
+    width: 2.25rem;
+    height: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+
+  .add-comment-label { display: none; }
+  .add-comment-icon { display: inline; line-height: 1; }
+
   .playback-controls {
-    grid-column: 1 / -1;
+    order: 1;
     width: max-content;
     max-width: calc(100vw - 1.2rem);
     gap: 0.38rem;
@@ -1289,18 +1308,17 @@ select {
   }
 
   .drop-curtain-toggle {
-    top: 14.6rem;
-    right: 0.6rem;
+    display: none;
   }
 
-  .track-style-control { top: 17.4rem; right: 0.6rem; }
+  .track-style-control { top: 3.4rem; right: 0.6rem; }
 
   .flight-library-panel {
-    top: 5.5rem;
+    top: 8.8rem;
     bottom: auto;
     left: 0.6rem;
     width: calc(100vw - 1.2rem);
-    max-height: calc(100dvh - 6.25rem - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 9.55rem - env(safe-area-inset-bottom));
     background: rgba(7, 10, 16, 0.78);
   }
 

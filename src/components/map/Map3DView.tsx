@@ -106,6 +106,22 @@ function isMobileViewport(): boolean {
   return window.matchMedia('(max-width: 720px)').matches
 }
 
+function makeProfileFramingOffset(map: Map3DElement): FollowOffset {
+  if (!isMobileViewport()) return { lat: 0, lng: 0, altitude: 0 }
+
+  // Shift the camera target behind the pilot so the marker occupies the
+  // visual centre of the map area that remains above the altitude profile.
+  const distanceMeters = Math.min(80_000, Math.max(30, (map.range ?? 1_000) * 0.14))
+  const bearing = (((map.heading ?? 0) + 180) * Math.PI) / 180
+  const latitudeRadians = ((map.center?.lat ?? 0) * Math.PI) / 180
+  const metersPerDegree = 111_320
+  return {
+    lat: (Math.cos(bearing) * distanceMeters) / metersPerDegree,
+    lng: (Math.sin(bearing) * distanceMeters) / (metersPerDegree * Math.max(0.2, Math.cos(latitudeRadians))),
+    altitude: 0,
+  }
+}
+
 function makePilotMarkerContent(pilotName: string, altitude: number): HTMLElement {
   const root = document.createElement('div')
   root.className = 'pilot-marker-content'
@@ -487,7 +503,12 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
         return
       }
 
-      const target = makePositionWithOffset(pos, followOffsetRef.current)
+      const framingOffset = makeProfileFramingOffset(map)
+      const target = makePositionWithOffset(pos, {
+        lat: followOffsetRef.current.lat + framingOffset.lat,
+        lng: followOffsetRef.current.lng + framingOffset.lng,
+        altitude: followOffsetRef.current.altitude,
+      })
       const dLat = target.lat - cur.lat
       const dLng = target.lng - cur.lng
       const curAlt = cur.altitude ?? pos.altitude
@@ -501,7 +522,12 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
         now - g.lastPointerEnd < GESTURE_POINTER_GRACE_MS ||
         now - g.lastWheel < GESTURE_WHEEL_GRACE_MS
       if (gestureBusy) {
-        followOffsetRef.current = makeOffsetFromPosition(cur, pos)
+        const gestureOffset = makeOffsetFromPosition(cur, pos)
+        followOffsetRef.current = {
+          lat: gestureOffset.lat - framingOffset.lat,
+          lng: gestureOffset.lng - framingOffset.lng,
+          altitude: gestureOffset.altitude,
+        }
         return
       }
       if (isCameraAnimating()) return

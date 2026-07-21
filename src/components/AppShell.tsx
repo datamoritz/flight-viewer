@@ -424,8 +424,9 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
           />
           {flight && (
             <>
-              <button type="button" className="upload-button add-comment-button" onClick={addMoment} disabled={!activeFlightId}>
-                Add comment
+              <button type="button" className="upload-button add-comment-button" onClick={addMoment} disabled={!activeFlightId} aria-label="Add comment">
+                <span className="add-comment-label">Add comment</span>
+                <span className="add-comment-icon" aria-hidden="true">+</span>
               </button>
               <PlaybackControls />
             </>
