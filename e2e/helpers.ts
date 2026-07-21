@@ -12,7 +12,7 @@ export const MALFORMED_IGC_PATH = path.join(__dirname, 'fixtures', 'malformed.ig
 export async function gotoWithMockedMaps(page: Page, mode: MockMapsMode = 'success'): Promise<void> {
   await page.addInitScript(installMapsMock, mode)
   await page.goto('/?provider=google')
-  await page.waitForSelector('text=Flight Viewer', { timeout: 15_000 })
+  await page.waitForSelector('.flight-library-panel', { timeout: 15_000 })
 }
 
 export async function uploadSampleFlight(page: Page): Promise<void> {

@@ -54,7 +54,8 @@ export function FlightLibraryPanel({
               <span aria-hidden="true" />
             </button>
           </h2>
-          <p>Drag and drop an IGC file or click the add button.</p>
+          <p className="flight-library-guidance flight-library-guidance-desktop">Drag and drop an IGC file or click the add button.</p>
+          <p className="flight-library-guidance flight-library-guidance-mobile">Select a flight or add an IGC file.</p>
         </div>
         <div className="flight-library-header-actions">
           <button type="button" className="panel-close-button" onClick={onClose} aria-label="Close flights panel">

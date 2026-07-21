@@ -122,6 +122,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
       const saved = await repository.createFlight(input)
       await refreshFlights()
       await loadStoredFlight(saved.id)
+      setIsFlightsOpen(false)
       setUploadError(null)
     } catch (err) {
       setUploadError(
@@ -403,7 +404,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
         <div className="control-cluster">
           <button
             type="button"
-            className="upload-button"
+            className="upload-button flight-toggle-button"
             onClick={() => setIsFlightsOpen((value) => !value)}
             aria-expanded={isFlightsOpen}
           >
@@ -423,7 +424,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
           />
           {flight && (
             <>
-              <button type="button" className="upload-button" onClick={addMoment} disabled={!activeFlightId}>
+              <button type="button" className="upload-button add-comment-button" onClick={addMoment} disabled={!activeFlightId}>
                 Add comment
               </button>
               <PlaybackControls />

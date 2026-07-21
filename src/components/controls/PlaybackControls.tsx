@@ -23,7 +23,9 @@ export function PlaybackControls() {
         aria-label="Jump to start"
         title="Jump to start"
       >
-        ⏮
+        <svg className="playback-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 5v14M19 6l-10 6 10 6z" />
+        </svg>
       </button>
 
       <button
@@ -34,7 +36,15 @@ export function PlaybackControls() {
         aria-label={isPlaying ? 'Pause' : 'Play'}
         title={isPlaying ? 'Pause (space)' : 'Play (space)'}
       >
-        {isPlaying ? '⏸' : '▶'}
+        {isPlaying ? (
+          <svg className="playback-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 6v12M16 6v12" />
+          </svg>
+        ) : (
+          <svg className="playback-icon playback-icon-play" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5l11 7-11 7z" />
+          </svg>
+        )}
       </button>
 
       <span className="playback-time" aria-live="off">

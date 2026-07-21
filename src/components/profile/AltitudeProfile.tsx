@@ -146,7 +146,8 @@ export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: A
         aria-label="Resize altitude profile panel"
       />
       <div className="altitude-panel-header">
-        <span>Altitude profile</span>
+        <span className="altitude-title-desktop">Altitude profile</span>
+        <span className="altitude-hint-mobile">Scroll in time or click play to start flight</span>
       </div>
       <div className="altitude-chart-stage">
         <svg
