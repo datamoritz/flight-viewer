@@ -35,6 +35,7 @@ test.describe('mobile layout', () => {
     await expect(page.getByRole('button', { name: 'Hide vertical position curtain' })).toBeHidden()
     const northBox = await page.getByRole('button', { name: 'Face north' }).boundingBox()
     expect(northBox).not.toBeNull()
+    expect(Math.abs((northBox?.y ?? 0) - (playbackBox?.y ?? 0))).toBeLessThan(2)
     await expect(page.getByRole('button', { name: 'Adjust flight line thickness' })).toBeHidden()
     await expect(page.locator('.playback-icon')).toHaveCount(2)
 
@@ -46,6 +47,11 @@ test.describe('mobile layout', () => {
     await expect(page.getByText('Line thickness')).toBeVisible()
     await page.locator('.map3d-root').click({ position: { x: 300, y: 400 } })
     await expect(page.getByRole('menu', { name: 'Flight options' })).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Flights', exact: true }).click()
+    await expect(optionsButton).toHaveCount(0)
+    await page.getByRole('button', { name: 'Flights', exact: true }).click()
+    await expect(optionsButton).toBeVisible()
 
     await optionsButton.click()
     await page.getByRole('menu', { name: 'Flight options' }).getByRole('menuitem', { name: 'Add comment' }).click()

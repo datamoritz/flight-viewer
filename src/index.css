@@ -1389,8 +1389,8 @@ select {
 
   .camera-control-button:first-child {
     display: inline-flex;
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2.55rem;
+    height: 2.55rem;
     border-radius: 50%;
     background: var(--glass-bg);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);

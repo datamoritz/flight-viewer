@@ -291,6 +291,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
     const previousTimeMs = previousPlaybackTimeRef.current
     previousPlaybackTimeRef.current = currentTimeMs
     if (!isPlaying || !activeFlightId || previousTimeMs === null || currentTimeMs < previousTimeMs) return
+    if (window.matchMedia('(max-width: 720px)').matches) return
     const reached = moments.find(
       (moment) => moment.timeMs >= previousTimeMs && moment.timeMs <= currentTimeMs,
     )
@@ -418,7 +419,10 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
           <button
             type="button"
             className="upload-button flight-toggle-button"
-            onClick={() => setIsFlightsOpen((value) => !value)}
+            onClick={() => {
+              setIsMobileActionsOpen(false)
+              setIsFlightsOpen((value) => !value)
+            }}
             aria-expanded={isFlightsOpen}
           >
             Flights
@@ -440,7 +444,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
               <button type="button" className="upload-button add-comment-button desktop-add-comment-button" onClick={addMoment} disabled={!activeFlightId} aria-label="Add comment">
                 Add comment
               </button>
-              <div className="mobile-flight-actions" ref={mobileActionsRef}>
+              {!isFlightsOpen && <div className="mobile-flight-actions" ref={mobileActionsRef}>
                 <button
                   type="button"
                   className={`upload-button mobile-actions-toggle ${isMobileActionsOpen ? 'is-open' : ''}`}
@@ -485,7 +489,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
                     </div>
                   </div>
                 )}
-              </div>
+              </div>}
               <PlaybackControls />
             </>
           )}
