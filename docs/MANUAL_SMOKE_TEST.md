@@ -4,12 +4,12 @@ The automated Playwright suite (`npm run test:e2e`) mocks the entire
 `google.maps.maps3d` boundary, so it verifies **application behavior** but not
 Google's actual rendering. The behaviors below can only be confirmed against
 the real API on a machine with a working GPU — run this checklist after any
-change that touches `src/components/map/` or upgrades the Maps alpha channel.
+change that touches `src/components/map/` or upgrades the Maps API channel.
 
 ## Prerequisites
 
 - A real API key in `.env.local` (`VITE_GOOGLE_MAPS_API_KEY`), with Maps
-  JavaScript API enabled and 3D Maps (alpha) access.
+  JavaScript API enabled and 3D Maps access.
 - Desktop Chrome with hardware acceleration ON
   (`chrome://settings` → System → "Use graphics acceleration when available").
 - `npm run dev`, open the printed URL.
@@ -19,9 +19,9 @@ change that touches `src/components/map/` or upgrades the Maps alpha channel.
 
 ### Load & render
 - [ ] Map renders real satellite terrain (not black); Google attribution visible bottom-left.
-- [ ] Google's "alpha channel" dev banner appears at top; floating controls sit *below* it, not under it.
+- [ ] Google's old "alpha channel" development banner does not appear.
 - [ ] Empty-state card is visible over the map before any file is loaded.
-- [ ] DevTools console: no errors (the alpha-channel warning itself is expected).
+- [ ] DevTools console: no Maps API errors.
 
 ### Flight display
 - [ ] Upload the IGC (drag-drop *and* button). Camera flies to frame the whole flight (~3 s).
@@ -59,9 +59,9 @@ change that touches `src/components/map/` or upgrades the Maps alpha channel.
 - [ ] Turn hardware acceleration OFF and reload: friendly in-app error (not a silent black map). Turn it back on afterwards.
 - [ ] Temporarily corrupt the key in `.env.local` and restart: friendly key-rejection error appears.
 
-## Known alpha-API limitations (expected, not bugs)
+## Known 3D Maps API limitations (expected, not bugs)
 
-- The "alpha channel — development purposes only" banner cannot be removed while on `v=alpha`.
+- Older deployments using `v=alpha` show Google's development-only banner; current builds use `v=weekly`.
 - Native marker labels don't reliably repaint after property updates, so the pilot readout is custom `MarkerElement` content instead.
 - `flyCameraTo` reports its final `center` as a terrain ground-point, not the exact requested target.
 - Camera gesture events (`gmp-centerchange` etc.) fire identically for pan, orbit, and zoom — user intent cannot be inferred from them. Because programmatic `center` writes also interrupt an in-progress user gesture, the always-follow loop suspends its writes while a pointer is down on the map (and briefly after) so gestures win, then preserves the resulting camera offset.

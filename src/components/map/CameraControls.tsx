@@ -108,19 +108,19 @@ export function CameraControls({ map, markCameraAnimation }: CameraControlsProps
         title="Face north"
         onClick={faceNorth}
       >
-        N
+        <span className="compass-icon" aria-hidden="true">◆</span>
       </button>
       <HoldButton label="Rotate left" title="Rotate left (hold to keep rotating)" onStep={rotate(1)}>
-        ⟲
+        ↶
       </HoldButton>
       <HoldButton label="Rotate right" title="Rotate right (hold to keep rotating)" onStep={rotate(-1)}>
-        ⟳
+        ↷
       </HoldButton>
       <HoldButton label="Tilt up" title="Tilt toward horizon (hold to keep tilting)" onStep={tilt(1)}>
-        ⬔
+        ↑
       </HoldButton>
       <HoldButton label="Tilt down" title="Tilt toward top-down (hold to keep tilting)" onStep={tilt(-1)}>
-        ⬓
+        ↓
       </HoldButton>
       <HoldButton label="Zoom in" title="Zoom in (hold to keep zooming)" onStep={zoom(1)}>
         +

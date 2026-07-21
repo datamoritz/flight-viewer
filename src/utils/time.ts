@@ -39,3 +39,20 @@ export function denverTzAbbrev(timeMs: number): string {
   const part = tzNameFormatter.formatToParts(timeMs).find((p) => p.type === 'timeZoneName')
   return part?.value ?? 'MT'
 }
+
+export function formatLocalClock(timeMs: number, timeZone: string, includeSeconds = true): string {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: includeSeconds ? '2-digit' : undefined,
+    hour12: false,
+  }).format(timeMs).replace(/^24/, '00')
+}
+
+export function localTzAbbrev(timeMs: number, timeZone: string): string {
+  const part = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'short' })
+    .formatToParts(timeMs)
+    .find((item) => item.type === 'timeZoneName')
+  return part?.value ?? timeZone
+}

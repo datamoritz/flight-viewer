@@ -23,7 +23,6 @@ const DEFAULT_CAMERA = {
   tilt: 45,
 }
 
-const TRACK_STROKE_WIDTH = 2
 const DROP_LINE_WIDTH = 3
 const DROP_LINE_LIFETIME_MS = 20_000
 const DROP_LINE_INTERVAL_MS = 250
@@ -73,6 +72,7 @@ interface FollowOffset {
 export interface Map3DViewProps {
   apiKey: string | undefined
   showDropCurtain: boolean
+  trackStrokeWidth: number
   moments: FlightMoment[]
   selectedMomentId: string | null
   onSelectMoment: (momentId: string) => void
@@ -137,7 +137,7 @@ function makeMomentMarkerContent(moment: FlightMoment, selectedMomentId: string 
   return root
 }
 
-export function Map3DView({ apiKey, showDropCurtain, moments, selectedMomentId, onSelectMoment }: Map3DViewProps) {
+export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, selectedMomentId, onSelectMoment }: Map3DViewProps) {
   const { status, error: scriptError } = useGoogleMapsScript(apiKey)
   const containerRef = useRef<HTMLDivElement>(null)
   const maps3dRef = useRef<Maps3DLibrary | null>(null)
@@ -274,7 +274,7 @@ export function Map3DView({ apiKey, showDropCurtain, moments, selectedMomentId, 
       const polyline = new maps3d.Polyline3DElement({
         path: [segment.points[0]],
         strokeColor: segment.color,
-        strokeWidth: TRACK_STROKE_WIDTH,
+        strokeWidth: trackStrokeWidth,
         altitudeMode: 'ABSOLUTE',
         drawsOccludedSegments: true,
       })
@@ -314,6 +314,10 @@ export function Map3DView({ apiKey, showDropCurtain, moments, selectedMomentId, 
       durationMillis: fitDurationMillis,
     })
   }, [map, flight, markCameraAnimation])
+
+  useEffect(() => {
+    for (const segment of trackRef.current) segment.polyline.strokeWidth = trackStrokeWidth
+  }, [trackStrokeWidth])
 
   useEffect(() => {
     if (!map || !maps3dRef.current) return

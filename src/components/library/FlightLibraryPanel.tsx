@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { FlightSummary } from '../../data/types'
+import { countryFlagForCoordinates } from '../../utils/locationMetadata'
 
 export interface FlightLibraryPanelProps {
   flights: FlightSummary[]
@@ -32,7 +33,6 @@ function formatDistance(meters: number | undefined): string {
 export function FlightLibraryPanel({
   flights,
   activeFlightId,
-  repositoryMode,
   isBusy,
   onUpload,
   onSelect,
@@ -48,17 +48,19 @@ export function FlightLibraryPanel({
     <section className="flight-library-panel" aria-label="Flight library">
       <div className="flight-library-header">
         <div>
-          <h2>Flights</h2>
-          <p>{repositoryMode === 'http' ? 'Shared library' : 'Local browser library'}</p>
+          <h2>Flights <span className="flight-count">{flights.length}</span></h2>
+          <p>Drag and drop an IGC file or click the add button.</p>
         </div>
-        <button type="button" className="panel-close-button" onClick={onClose} aria-label="Close flights panel">
-          ×
-        </button>
+        <div className="flight-library-header-actions">
+          <button type="button" className="flight-library-add" onClick={() => inputRef.current?.click()} disabled={isBusy} aria-label="Add IGC flight" title="Add IGC flight">
+            +
+          </button>
+          <button type="button" className="panel-close-button" onClick={onClose} aria-label="Close flights panel">
+            ×
+          </button>
+        </div>
       </div>
 
-      <button type="button" className="upload-button flight-library-upload" onClick={() => inputRef.current?.click()} disabled={isBusy}>
-        Upload IGC
-      </button>
       <input
         ref={inputRef}
         type="file"
@@ -77,7 +79,17 @@ export function FlightLibraryPanel({
           <p className="flight-library-empty">No flights uploaded yet.</p>
         ) : (
           flights.map((flight) => (
-            <article key={flight.id} className={`flight-library-row ${flight.id === activeFlightId ? 'is-active' : ''}`}>
+            <article
+              key={flight.id}
+              className={`flight-library-row ${flight.id === activeFlightId ? 'is-active' : ''}`}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${flight.title}`}
+              onClick={() => editingFlightId !== flight.id && onSelect(flight.id)}
+              onKeyDown={(event) => {
+                if ((event.key === 'Enter' || event.key === ' ') && editingFlightId !== flight.id) onSelect(flight.id)
+              }}
+            >
               <div className="flight-library-main">
                 {editingFlightId === flight.id ? (
                   <input
@@ -95,9 +107,9 @@ export function FlightLibraryPanel({
                     autoFocus
                   />
                 ) : (
-                  <button type="button" className="flight-library-select" onClick={() => onSelect(flight.id)}>
-                    <strong>{flight.title}</strong>
-                  </button>
+                  <div className="flight-library-select">
+                    <strong><span className="flight-country-flag" aria-hidden="true">{countryFlagForCoordinates(flight.startLat, flight.startLng)}</span>{flight.title}</strong>
+                  </div>
                 )}
                 <div className="flight-library-meta">
                   <span>{flight.pilotName}</span>
@@ -109,7 +121,7 @@ export function FlightLibraryPanel({
                   <span title="Rough optimized free distance between the furthest sampled track points">↔ {formatDistance(flight.optimizedDistanceMeters)}</span>
                 </div>
               </div>
-              <div className="flight-library-actions">
+              <div className="flight-library-actions" onClick={(event) => event.stopPropagation()}>
                 {editingFlightId === flight.id ? (
                   <>
                     <button

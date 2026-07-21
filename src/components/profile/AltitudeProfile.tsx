@@ -3,7 +3,8 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import { usePlaybackStore } from '../../playback/usePlaybackStore'
 import { playbackStore } from '../../playback/store'
 import { useResizablePanel } from './useResizablePanel'
-import { formatDenverClock, formatDenverClockShort } from '../../utils/time'
+import { formatLocalClock } from '../../utils/time'
+import { timeZoneForCoordinates } from '../../utils/locationMetadata'
 import type { Fix, ParsedFlight } from '../../igc/types'
 import type { FlightMoment } from '../../data/types'
 
@@ -80,6 +81,7 @@ export interface AltitudeProfileProps {
 
 export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: AltitudeProfileProps) {
   const flight = usePlaybackStore((s) => s.flight)
+  const timeZone = flight ? timeZoneForCoordinates(flight.fixes[0].lat, flight.fixes[0].lng) : 'UTC'
   const currentTimeMs = usePlaybackStore((s) => s.currentTimeMs)
   const { height, onHandlePointerDown } = useResizablePanel()
   const svgRef = useRef<SVGSVGElement>(null)
@@ -170,7 +172,7 @@ export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: A
           aria-valuemin={flight.startTimeMs}
           aria-valuemax={flight.endTimeMs}
           aria-valuenow={currentTimeMs}
-          aria-valuetext={formatDenverClock(currentTimeMs)}
+          aria-valuetext={formatLocalClock(currentTimeMs, timeZone)}
           tabIndex={0}
           onPointerDown={beginScrub}
         >
@@ -206,7 +208,7 @@ export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: A
               textAnchor="middle"
               transform={`scale(${LABEL_SCALE_X} 1)`}
             >
-              {formatDenverClockShort(tick.timeMs)}
+              {formatLocalClock(tick.timeMs, timeZone, false)}
             </text>
           ))}
 

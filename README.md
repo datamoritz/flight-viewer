@@ -12,7 +12,7 @@ stored in IndexedDB. A production deployment can use the included
 ## Stack
 
 - React + TypeScript + Vite
-- [Google Maps Platform 3D Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/3d-maps-overview) (`google.maps.maps3d`, currently an alpha/preview library)
+- [Google Maps Platform 3D Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/3d-maps-overview) (`google.maps.maps3d`, weekly channel)
 - Vitest for unit tests
 - oxlint for linting
 - FastAPI + PostgreSQL persistence API
@@ -22,7 +22,7 @@ stored in IndexedDB. A production deployment can use the included
 1. `npm install`
 2. Get a Google Maps Platform API key:
    - Enable **Maps JavaScript API** on it in the [Cloud Console](https://console.cloud.google.com/google/maps-apis/api-list).
-   - Confirm the project has access to the 3D Maps preview (`maps3d` library, alpha channel).
+   - Confirm the project has access to the 3D Maps API (`maps3d` library).
    - Restrict the key to your local/deployed origins before using it anywhere but `localhost`.
 3. Copy `.env.example` to `.env.local` and put your key in `VITE_GOOGLE_MAPS_API_KEY`. This file is gitignored and never committed.
 4. `npm run dev`, then open the printed local URL.
@@ -81,12 +81,11 @@ hold to repeat) top-right, which work regardless of pointer-gesture support. A
 pan chooses a new fixed screen position for the pilot, and playback keeps
 following from there.
 
-## Known limitations (alpha API)
+## Known limitations (3D Maps API)
 
 - 3D Maps requires real GPU hardware acceleration in the browser; it will not
   render under software/headless rendering.
-- Google's `maps3d` alpha channel injects a dev-only banner at the top of the
-  page ("Using the alpha channel..."); this is expected during development
-  and goes away once the API leaves preview.
+- Older builds that explicitly request `v=alpha` show Google's development-only
+  banner. Current builds use the production-suitable weekly channel.
 - See [docs/MANUAL_SMOKE_TEST.md](docs/MANUAL_SMOKE_TEST.md) for the full
-  list of observed alpha-API quirks and the manual verification checklist.
+  list of observed 3D Maps quirks and the manual verification checklist.

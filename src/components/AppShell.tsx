@@ -41,6 +41,8 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
   const repository = useMemo(() => createFlightRepository(dataApiUrl), [dataApiUrl])
   const locationLookup = useMemo(() => new GoogleLocationLookupService(apiKey), [apiKey])
   const [showDropCurtain, setShowDropCurtain] = useState(true)
+  const [trackStrokeWidth, setTrackStrokeWidth] = useState(2)
+  const [showTrackStyle, setShowTrackStyle] = useState(false)
   const [isFlightsOpen, setIsFlightsOpen] = useState(false)
   const [isBusy, setIsBusy] = useState(false)
   const [flights, setFlights] = useState<FlightSummary[]>([])
@@ -357,6 +359,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
         <Map3DView
           apiKey={apiKey}
           showDropCurtain={showDropCurtain}
+          trackStrokeWidth={trackStrokeWidth}
           moments={moments}
           selectedMomentId={selectedMomentId}
           onSelectMoment={selectComment}
@@ -372,6 +375,25 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
         >
           <span className="drop-curtain-icon" aria-hidden="true" />
         </button>
+
+        <div className="track-style-control">
+          <button
+            type="button"
+            className={`track-style-toggle ${showTrackStyle ? 'is-active' : ''}`}
+            onClick={() => setShowTrackStyle((value) => !value)}
+            aria-expanded={showTrackStyle}
+            aria-label="Adjust flight line thickness"
+            title="Flight line thickness"
+          >
+            <span className="track-style-icon" aria-hidden="true" />
+          </button>
+          {showTrackStyle && (
+            <div className="track-style-popover">
+              <label htmlFor="track-width">Flight line <output>{trackStrokeWidth}px</output></label>
+              <input id="track-width" type="range" min="1" max="8" step="0.5" value={trackStrokeWidth} onChange={(event) => setTrackStrokeWidth(Number(event.currentTarget.value))} />
+            </div>
+          )}
+        </div>
 
         <div className="control-cluster">
           <button type="button" className="upload-button" onClick={() => setIsFlightsOpen((value) => !value)}>

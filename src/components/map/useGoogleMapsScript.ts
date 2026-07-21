@@ -104,7 +104,7 @@ export function useGoogleMapsScript(apiKey: string | undefined): GoogleMapsScrip
 
     try {
       installGoogleAuthFailureHandler()
-      installGoogleMapsBootstrap({ key: apiKey, v: 'alpha' })
+      installGoogleMapsBootstrap({ key: apiKey, v: 'weekly' })
       setState({ status: 'ready', error: null })
     } catch (err) {
       setState({

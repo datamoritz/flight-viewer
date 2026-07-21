@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

@@ -1,6 +1,7 @@
 import { usePlaybackStore } from '../../playback/usePlaybackStore'
 import { playbackStore, SPEED_OPTIONS, type Speed } from '../../playback/store'
-import { denverTzAbbrev, formatDenverClock } from '../../utils/time'
+import { formatLocalClock, localTzAbbrev } from '../../utils/time'
+import { timeZoneForCoordinates } from '../../utils/locationMetadata'
 
 export function PlaybackControls() {
   const flight = usePlaybackStore((s) => s.flight)
@@ -9,7 +10,8 @@ export function PlaybackControls() {
   const speed = usePlaybackStore((s) => s.speed)
 
   const disabled = !flight
-  const tz = flight ? denverTzAbbrev(currentTimeMs) : 'MT'
+  const timeZone = flight ? timeZoneForCoordinates(flight.fixes[0].lat, flight.fixes[0].lng) : null
+  const tz = timeZone ? localTzAbbrev(currentTimeMs, timeZone) : ''
 
   return (
     <div className="playback-controls" role="group" aria-label="Playback controls">
@@ -36,7 +38,7 @@ export function PlaybackControls() {
       </button>
 
       <span className="playback-time" aria-live="off">
-        {flight ? `${formatDenverClock(currentTimeMs)} ${tz}` : `--:--:-- ${tz}`}
+        {flight && timeZone ? `${formatLocalClock(currentTimeMs, timeZone)} ${tz}` : '--:--:--'}
       </span>
 
       <label className="playback-speed">
