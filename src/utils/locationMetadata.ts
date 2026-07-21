@@ -15,7 +15,7 @@ const TIME_ZONE_COUNTRIES: Record<string, string> = {
   'Europe/Warsaw': 'PL', 'Europe/London': 'GB', 'Europe/Madrid': 'ES',
   'Europe/Oslo': 'NO', 'Europe/Stockholm': 'SE', 'Europe/Helsinki': 'FI',
   'Pacific/Auckland': 'NZ', 'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU',
-  'Australia/Brisbane': 'AU', 'Asia/Tokyo': 'JP',
+  'Australia/Brisbane': 'AU', 'Asia/Tokyo': 'JP', 'America/Bogota': 'CO',
 }
 
 function countryCodeForTimeZone(timeZone: string): string | null {

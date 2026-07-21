@@ -195,10 +195,10 @@ export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: A
               {tick.altitude.toLocaleString()} m
             </span>
           ))}
-          {timeTicks.map((tick) => (
+          {timeTicks.map((tick, index) => (
             <span
               key={tick.timeMs}
-              className="altitude-axis-label altitude-axis-label-x"
+              className={`altitude-axis-label altitude-axis-label-x ${index === 0 ? 'is-first' : ''} ${index === timeTicks.length - 1 ? 'is-last' : ''}`}
               style={{ left: `${(clamp(tick.x, PADDING_LEFT + 20, VIEW_WIDTH - PADDING_RIGHT - 20) / VIEW_WIDTH) * 100}%` }}
             >
               {formatLocalClock(tick.timeMs, timeZone, false)}

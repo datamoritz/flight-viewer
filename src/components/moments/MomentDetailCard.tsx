@@ -144,6 +144,7 @@ export function MomentDetailCard({
   const [isEditing, setIsEditing] = useState(false)
   const [isDropActive, setIsDropActive] = useState(false)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
+  const isMobile = window.matchMedia('(max-width: 720px)').matches
   const [position, setPosition] = useState<{ x: number; y: number } | null>(() => {
     try {
       const saved = sessionStorage.getItem('flight-viewer-comment-position')
@@ -153,10 +154,11 @@ export function MomentDetailCard({
   const dragRef = useRef<{ pointerId: number; dx: number; dy: number } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const cardStyle: CSSProperties | undefined = position
+  const cardStyle: CSSProperties | undefined = position && !isMobile
     ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' }
     : undefined
   const beginMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (isMobile) return
     if ((event.target as HTMLElement).closest('button, input, textarea')) return
     const card = event.currentTarget.closest<HTMLElement>('.moment-detail-card')
     if (!card) return
@@ -304,8 +306,9 @@ export function MomentDetailCard({
             step={60}
           />
         </label>
-        <button type="button" onClick={() => inputRef.current?.click()}>
-          Upload photos
+        <button type="button" className="add-pictures-button" onClick={() => inputRef.current?.click()}>
+          <span className="add-pictures-label-desktop">Upload photos</span>
+          <span className="add-pictures-label-mobile">Add pictures</span>
         </button>
         <input
           ref={inputRef}

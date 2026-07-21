@@ -12,6 +12,9 @@ test.describe('mobile layout', () => {
     await expect(page.getByText('Select a flight or add an IGC file.')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Face north' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Rotate left' })).toBeHidden()
+    const initialFlightsBox = await page.getByRole('button', { name: 'Flights', exact: true }).boundingBox()
+    const initialLibraryBox = await page.locator('.flight-library-panel').boundingBox()
+    expect((initialLibraryBox?.y ?? 0) - ((initialFlightsBox?.y ?? 0) + (initialFlightsBox?.height ?? 0))).toBeGreaterThan(30)
 
     await uploadSampleFlight(page)
 
@@ -22,9 +25,18 @@ test.describe('mobile layout', () => {
     const panelBox = await page.locator('.altitude-panel').boundingBox()
     expect(panelBox?.width).toBeGreaterThan(360)
 
-    const flightsBox = await page.getByRole('button', { name: 'Flights' }).boundingBox()
+    const flightsBox = await page.getByRole('button', { name: 'Flights', exact: true }).boundingBox()
     const playbackBox = await page.locator('.playback-controls').boundingBox()
     expect(playbackBox?.y).toBeGreaterThan((flightsBox?.y ?? 0) + (flightsBox?.height ?? 0))
     await expect(page.locator('.playback-icon')).toHaveCount(2)
+
+    await page.getByRole('button', { name: 'Add comment' }).click()
+    await expect(page.getByRole('button', { name: 'Add pictures' })).toBeVisible()
+    await expect(page.getByText('Drop JPEG, PNG, WebP or HEIC photos here.')).toBeHidden()
+    const commentCard = page.locator('.moment-detail-card')
+    const commentBox = await commentCard.boundingBox()
+    expect(commentBox?.y).toBeGreaterThan(90)
+    await page.getByRole('button', { name: 'Close comment' }).click()
+    await expect(commentCard).toHaveCount(0)
   })
 })

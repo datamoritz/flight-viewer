@@ -488,12 +488,14 @@ select {
 
 .flight-library-panel {
   top: calc(5.5rem + var(--gmaps-banner-height));
+  bottom: 5.5rem;
   left: 1rem;
   width: min(25rem, calc(100vw - 2rem));
-  max-height: min(34rem, calc(100vh - 10rem));
+  max-height: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: rgba(11, 15, 23, 0.91);
 }
 
 .flight-library-header,
@@ -602,7 +604,7 @@ select {
   align-items: start;
   border-radius: 7px;
   padding: 0.52rem 0.6rem;
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.075);
   border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
   transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
@@ -819,6 +821,8 @@ select {
   color: var(--ink-dim);
   font-size: 0.75rem;
 }
+
+.add-pictures-label-mobile { display: none; }
 
 .moment-photo-tools input[type='number'] {
   width: 5.5rem;
@@ -1292,10 +1296,12 @@ select {
   .track-style-control { top: 17.4rem; right: 0.6rem; }
 
   .flight-library-panel {
-    top: 4.1rem;
+    top: 5.5rem;
+    bottom: auto;
     left: 0.6rem;
     width: calc(100vw - 1.2rem);
-    max-height: calc(100dvh - 5rem - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 6.25rem - env(safe-area-inset-bottom));
+    background: rgba(7, 10, 16, 0.78);
   }
 
   .flight-library-guidance-desktop { display: none; }
@@ -1307,12 +1313,37 @@ select {
   .moment-detail-card {
     left: 0.6rem;
     right: 0.6rem;
-    bottom: 450px;
+    top: 7rem;
+    bottom: auto;
+    width: auto;
+    max-height: min(46dvh, 25rem);
+    overflow: auto;
+    overscroll-behavior: contain;
   }
 
   .moment-detail-card.is-display {
-    left: var(--profile-side-inset);
-    right: auto;
+    left: 0.6rem;
+    right: 0.6rem;
+    top: 7rem;
+    width: auto;
+  }
+
+  .moment-detail-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(10, 14, 22, 0.96);
+  }
+
+  .moment-detail-header.is-draggable { cursor: default; }
+  .moment-drop-hint,
+  .moment-drop-hint-inline { display: none; }
+  .add-pictures-label-desktop { display: none; }
+  .add-pictures-label-mobile { display: inline; }
+  .add-pictures-button {
+    color: var(--ink);
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
   }
 
   .altitude-panel-header {
@@ -1338,6 +1369,15 @@ select {
     bottom: max(0.55rem, env(safe-area-inset-bottom));
     border-radius: 10px;
   }
+
+  .altitude-axis-label-y {
+    left: 0.4rem !important;
+    transform: translateY(-50%);
+    font-size: 0.62rem;
+  }
+
+  .altitude-axis-label-x.is-first { transform: none; }
+  .altitude-axis-label-x.is-last { transform: translateX(-100%); }
 
   .drag-overlay { display: none; }
 }

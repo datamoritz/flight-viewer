@@ -16,6 +16,9 @@ test.describe('upload and playback', () => {
     await expect(page.getByText('Select a flight from the library on the left or drag and drop an IGC file.')).toBeVisible()
     await expect(page.getByText('Designed by Moritz Knödler')).toBeVisible()
     await expect(page.locator('.altitude-panel')).toHaveCount(0)
+    const libraryBox = await page.locator('.flight-library-panel').boundingBox()
+    if (!libraryBox) throw new Error('flight library not found')
+    expect(Math.abs(libraryBox.y - (720 - libraryBox.y - libraryBox.height))).toBeLessThan(2)
     expect(errors).toEqual([])
   })
 

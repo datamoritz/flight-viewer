@@ -23,10 +23,10 @@ const DEFAULT_CAMERA = {
   tilt: 0,
 }
 
-const DROP_LINE_WIDTH = 3
 const DROP_LINE_LIFETIME_MS = 20_000
 const DROP_LINE_INTERVAL_MS = 250
 const DROP_LINE_MAX_ALPHA = 0.22
+const MOBILE_DROP_LINE_MAX_ALPHA = 0.58
 
 // The pilot marker is one screen-space marker content bundle, not a separate
 // React overlay, so the name and altitude stay glued to the red pointed tip.
@@ -100,6 +100,10 @@ function colorWithAlpha(color: string, alpha: number): string {
   const g = Number.parseInt(color.slice(3, 5), 16)
   const b = Number.parseInt(color.slice(5, 7), 16)
   return `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`
+}
+
+function isMobileViewport(): boolean {
+  return window.matchMedia('(max-width: 720px)').matches
 }
 
 function makePilotMarkerContent(pilotName: string, altitude: number): HTMLElement {
@@ -424,8 +428,8 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
             { lat: pos.lat, lng: pos.lng, altitude: 0 },
             { lat: pos.lat, lng: pos.lng, altitude: pos.altitude },
           ],
-          strokeColor: colorWithAlpha(activeColor, DROP_LINE_MAX_ALPHA),
-          strokeWidth: DROP_LINE_WIDTH,
+          strokeColor: colorWithAlpha(activeColor, isMobileViewport() ? MOBILE_DROP_LINE_MAX_ALPHA : DROP_LINE_MAX_ALPHA),
+          strokeWidth: isMobileViewport() ? 4 : 3,
           altitudeMode: 'ABSOLUTE',
           drawsOccludedSegments: false,
         })
@@ -441,7 +445,8 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
           line.polyline.remove()
           continue
         }
-        const alpha = DROP_LINE_MAX_ALPHA * (1 - age / DROP_LINE_LIFETIME_MS)
+        const maxAlpha = isMobileViewport() ? MOBILE_DROP_LINE_MAX_ALPHA : DROP_LINE_MAX_ALPHA
+        const alpha = maxAlpha * (1 - age / DROP_LINE_LIFETIME_MS)
         line.polyline.strokeColor = colorWithAlpha(line.color, alpha)
         kept.push(line)
       }
