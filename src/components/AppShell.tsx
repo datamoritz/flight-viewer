@@ -43,6 +43,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
   const [showDropCurtain, setShowDropCurtain] = useState(true)
   const [trackStrokeWidth, setTrackStrokeWidth] = useState(3.5)
   const [showTrackStyle, setShowTrackStyle] = useState(false)
+  const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false)
   const [isFlightsOpen, setIsFlightsOpen] = useState(true)
   const [hasLoadedFlights, setHasLoadedFlights] = useState(false)
   const [isBusy, setIsBusy] = useState(false)
@@ -56,6 +57,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isDragActive, setIsDragActive] = useState(false)
   const uploadInputRef = useRef<HTMLInputElement>(null)
+  const mobileActionsRef = useRef<HTMLDivElement>(null)
   const dragCounterRef = useRef(0)
   const previousPlaybackTimeRef = useRef<number | null>(null)
 
@@ -85,6 +87,17 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
       setUploadError(err instanceof Error ? err.message : 'Could not load the flight library.'),
     ).finally(() => setHasLoadedFlights(true))
   }, [refreshFlights])
+
+  useEffect(() => {
+    if (!isMobileActionsOpen) return
+    const closeOnOutsidePress = (event: PointerEvent) => {
+      if (!mobileActionsRef.current?.contains(event.target as Node)) setIsMobileActionsOpen(false)
+    }
+    document.addEventListener('pointerdown', closeOnOutsidePress)
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePress)
+  }, [isMobileActionsOpen])
+
+  useEffect(() => setIsMobileActionsOpen(false), [activeFlightId])
 
   const handleFile = useCallback(async (file: File) => {
     try {
@@ -424,10 +437,55 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
           />
           {flight && (
             <>
-              <button type="button" className="upload-button add-comment-button" onClick={addMoment} disabled={!activeFlightId} aria-label="Add comment">
-                <span className="add-comment-label">Add comment</span>
-                <span className="add-comment-icon" aria-hidden="true">+</span>
+              <button type="button" className="upload-button add-comment-button desktop-add-comment-button" onClick={addMoment} disabled={!activeFlightId} aria-label="Add comment">
+                Add comment
               </button>
+              <div className="mobile-flight-actions" ref={mobileActionsRef}>
+                <button
+                  type="button"
+                  className={`upload-button mobile-actions-toggle ${isMobileActionsOpen ? 'is-open' : ''}`}
+                  onClick={() => setIsMobileActionsOpen((value) => !value)}
+                  aria-expanded={isMobileActionsOpen}
+                  aria-label="Flight options"
+                >
+                  <span aria-hidden="true">+</span>
+                </button>
+                {isMobileActionsOpen && (
+                  <div className="mobile-actions-menu" role="menu" aria-label="Flight options">
+                    <button
+                      type="button"
+                      className="mobile-action-row"
+                      role="menuitem"
+                      onClick={() => {
+                        addMoment()
+                        setIsMobileActionsOpen(false)
+                      }}
+                      disabled={!activeFlightId}
+                    >
+                      <span className="mobile-action-symbol" aria-hidden="true">+</span>
+                      <span>Add comment</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="mobile-action-row"
+                      role="menuitemcheckbox"
+                      aria-checked={showDropCurtain}
+                      onClick={() => setShowDropCurtain((value) => !value)}
+                    >
+                      <span className="mobile-action-symbol curtain-mini-icon" aria-hidden="true" />
+                      <span>Vertical lines</span>
+                      <span className={`mobile-action-switch ${showDropCurtain ? 'is-on' : ''}`} aria-hidden="true"><i /></span>
+                    </button>
+                    <div className="mobile-action-slider">
+                      <label htmlFor="mobile-track-width">
+                        <span>Line thickness</span>
+                        <output>{trackStrokeWidth}px</output>
+                      </label>
+                      <input id="mobile-track-width" type="range" min="1" max="8" step="0.5" value={trackStrokeWidth} onChange={(event) => setTrackStrokeWidth(Number(event.currentTarget.value))} />
+                    </div>
+                  </div>
+                )}
+              </div>
               <PlaybackControls />
             </>
           )}
