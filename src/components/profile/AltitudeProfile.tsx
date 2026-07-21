@@ -10,7 +10,7 @@ import type { FlightMoment } from '../../data/types'
 
 const VIEW_WIDTH = 1000
 const VIEW_HEIGHT = 240
-const PADDING_TOP = 16
+const PADDING_TOP = 5
 const PADDING_BOTTOM = 28
 const PADDING_LEFT = 52
 const PADDING_RIGHT = 16

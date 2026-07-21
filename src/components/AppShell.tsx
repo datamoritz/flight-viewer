@@ -41,7 +41,7 @@ export function AppShell({ apiKey, dataApiUrl }: AppShellProps) {
   const repository = useMemo(() => createFlightRepository(dataApiUrl), [dataApiUrl])
   const locationLookup = useMemo(() => new GoogleLocationLookupService(apiKey), [apiKey])
   const [showDropCurtain, setShowDropCurtain] = useState(true)
-  const [trackStrokeWidth, setTrackStrokeWidth] = useState(2)
+  const [trackStrokeWidth, setTrackStrokeWidth] = useState(3.5)
   const [showTrackStyle, setShowTrackStyle] = useState(false)
   const [isFlightsOpen, setIsFlightsOpen] = useState(true)
   const [hasLoadedFlights, setHasLoadedFlights] = useState(false)
