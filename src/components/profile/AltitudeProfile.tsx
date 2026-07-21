@@ -16,7 +16,6 @@ const PADDING_LEFT = 52
 const PADDING_RIGHT = 16
 const CHART_MAX_POINTS = 1200
 const GRID_STEP_M = 500
-const LABEL_SCALE_X = 0.74
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
@@ -138,8 +137,6 @@ export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: A
     altitude,
     y: geometry.yForAltitude(altitude),
   }))
-  const labelX = (x: number) => x / LABEL_SCALE_X
-
   return (
     <div className="altitude-panel" style={{ height }}>
       <button
@@ -167,40 +164,17 @@ export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: A
           onPointerDown={beginScrub}
         >
           {altGridlines.map((tick) => (
-            <g key={tick.altitude}>
-              <line
-                x1={PADDING_LEFT}
-                x2={VIEW_WIDTH - PADDING_RIGHT}
-                y1={tick.y}
-                y2={tick.y}
-                className="altitude-gridline"
-              />
-              <text
-                x={labelX(PADDING_LEFT - 8)}
-                y={tick.y}
-                className="altitude-axis-label"
-                textAnchor="end"
-                transform={`scale(${LABEL_SCALE_X} 1)`}
-              >
-                {tick.altitude.toLocaleString()} m
-              </text>
-            </g>
+            <line
+              key={tick.altitude}
+              x1={PADDING_LEFT}
+              x2={VIEW_WIDTH - PADDING_RIGHT}
+              y1={tick.y}
+              y2={tick.y}
+              className="altitude-gridline"
+            />
           ))}
 
           {staticChart}
-
-          {timeTicks.map((tick) => (
-            <text
-              key={tick.timeMs}
-              x={labelX(clamp(tick.x, PADDING_LEFT + 20, VIEW_WIDTH - PADDING_RIGHT - 20))}
-              y={VIEW_HEIGHT - 8}
-              className="altitude-axis-label"
-              textAnchor="middle"
-              transform={`scale(${LABEL_SCALE_X} 1)`}
-            >
-              {formatLocalClock(tick.timeMs, timeZone, false)}
-            </text>
-          ))}
 
           <line
             x1={cursorX}
@@ -210,6 +184,26 @@ export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: A
             className="altitude-cursor"
           />
         </svg>
+        <div className="altitude-label-layer" aria-hidden="true">
+          {altGridlines.map((tick) => (
+            <span
+              key={tick.altitude}
+              className="altitude-axis-label altitude-axis-label-y"
+              style={{ left: `${(PADDING_LEFT / VIEW_WIDTH) * 100}%`, top: `${(tick.y / VIEW_HEIGHT) * 100}%` }}
+            >
+              {tick.altitude.toLocaleString()} m
+            </span>
+          ))}
+          {timeTicks.map((tick) => (
+            <span
+              key={tick.timeMs}
+              className="altitude-axis-label altitude-axis-label-x"
+              style={{ left: `${(clamp(tick.x, PADDING_LEFT + 20, VIEW_WIDTH - PADDING_RIGHT - 20) / VIEW_WIDTH) * 100}%` }}
+            >
+              {formatLocalClock(tick.timeMs, timeZone, false)}
+            </span>
+          ))}
+        </div>
         {moments.map((moment) => {
           const x = (geometry.xForTime(moment.timeMs) / VIEW_WIDTH) * 100
           const y = (geometry.yForAltitude(moment.altitude) / VIEW_HEIGHT) * 100

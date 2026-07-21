@@ -68,20 +68,21 @@ test.describe('altitude profile', () => {
     await uploadSampleFlight(page)
 
     const heightBefore = await page.locator('.altitude-panel').evaluate((el) => el.getBoundingClientRect().height)
-    expect(heightBefore).toBe(440)
+    expect(heightBefore).toBe(240)
 
     const handleBox = await page.locator('.altitude-panel-handle').boundingBox()
     if (!handleBox) throw new Error('handle not found')
     const hx = handleBox.x + handleBox.width / 2
     const hy = handleBox.y + handleBox.height / 2
 
-    // The panel now starts expanded, so dragging up should stay clamped at the maximum.
+    // The panel starts at one third of the 720px test viewport.
     await page.mouse.move(hx, hy)
     await page.mouse.down()
     await page.mouse.move(hx, hy - 100, { steps: 8 })
     await page.mouse.up()
     const heightAfterGrow = await page.locator('.altitude-panel').evaluate((el) => el.getBoundingClientRect().height)
-    expect(heightAfterGrow).toBe(heightBefore)
+    expect(heightAfterGrow).toBeGreaterThan(heightBefore)
+    expect(heightAfterGrow).toBeLessThanOrEqual(440)
 
     // Try to shrink it far past the minimum — should clamp, not go to 0 or negative.
     const handleBox2 = await page.locator('.altitude-panel-handle').boundingBox()
@@ -101,6 +102,6 @@ test.describe('altitude profile', () => {
     await page.mouse.move(handleBox3.x + handleBox3.width / 2, handleBox3.y - 2000, { steps: 8 })
     await page.mouse.up()
     const heightAfterRegrow = await page.locator('.altitude-panel').evaluate((el) => el.getBoundingClientRect().height)
-    expect(heightAfterRegrow).toBe(heightBefore)
+    expect(heightAfterRegrow).toBe(440)
   })
 })

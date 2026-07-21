@@ -3,7 +3,6 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 
 export const MIN_PANEL_HEIGHT = 140
 export const MAX_PANEL_HEIGHT = 440
-const DEFAULT_PANEL_HEIGHT = MAX_PANEL_HEIGHT
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
@@ -11,7 +10,7 @@ function clamp(value: number, min: number, max: number): number {
 
 /** Drag-to-resize logic for the altitude panel's top handle, clamped to a min/max height. */
 export function useResizablePanel() {
-  const [height, setHeight] = useState(DEFAULT_PANEL_HEIGHT)
+  const [height, setHeight] = useState(() => clamp(Math.round(window.innerHeight / 3), MIN_PANEL_HEIGHT, MAX_PANEL_HEIGHT))
   const dragState = useRef<{ startY: number; startHeight: number } | null>(null)
 
   const onHandlePointerDown = useCallback(
