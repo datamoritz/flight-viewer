@@ -29,10 +29,9 @@ test.describe('always-follow camera & pilot label', () => {
 
     const box = await page.locator('.altitude-svg').boundingBox()
     if (!box) throw new Error('altitude-svg not found')
-    await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.5)
+    await page.mouse.click(box.x + box.width * 0.45, box.y + box.height * 0.5)
 
-    const altitudeAfterScrub = await page.locator('.pilot-label-altitude').textContent()
-    expect(altitudeAfterScrub).not.toBe(initialAltitude)
+    await expect(page.locator('.pilot-label-altitude')).not.toHaveText(initialAltitude ?? '')
   })
 })
 

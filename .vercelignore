@@ -1,0 +1,6 @@
+backend/
+docs/
+igc files/
+test-results/
+playwright-report/
+vitest.config.ts

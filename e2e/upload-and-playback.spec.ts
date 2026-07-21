@@ -10,8 +10,8 @@ test.describe('upload and playback', () => {
     })
 
     await gotoWithMockedMaps(page)
-    await expect(page.getByText('Paragliding Flight Viewer')).toBeVisible()
-    await expect(page.getByText('Upload IGC above to explore', { exact: false })).toBeVisible()
+    await expect(page.getByText('Flight Viewer')).toBeVisible()
+    await expect(page.getByText('Flights above to upload or reopen', { exact: false })).toBeVisible()
     expect(errors).toEqual([])
   })
 
@@ -19,8 +19,8 @@ test.describe('upload and playback', () => {
     await gotoWithMockedMaps(page)
     await uploadSampleFlight(page)
 
-    await expect(page.getByText('Paragliding Flight Viewer')).toHaveCount(0)
-    await expect(page.locator('.playback-time')).toContainText('10:00:00 UTC')
+    await expect(page.getByText('Flight Viewer')).toHaveCount(0)
+    await expect(page.locator('.playback-time')).toContainText('04:00:00 MDT')
 
     const trackCreated = await page.evaluate(() => {
       const map = document.querySelector('.map3d-container')?.firstElementChild
@@ -36,7 +36,7 @@ test.describe('upload and playback', () => {
     await page.getByRole('button', { name: 'Play' }).click()
     await page.waitForTimeout(1200)
     const timeDuringPlay = await page.locator('.playback-time').textContent()
-    expect(timeDuringPlay).not.toBe('10:00:00 UTC')
+    expect(timeDuringPlay).not.toBe('04:00:00 MDT')
 
     await page.getByRole('button', { name: 'Pause' }).click()
     const timeAtPause = await page.locator('.playback-time').textContent()
@@ -68,7 +68,7 @@ test.describe('upload and playback', () => {
     // so asserting the exact start time requires a stationary clock.
     await page.getByRole('button', { name: 'Pause' }).click()
     await page.getByRole('button', { name: 'Jump to start' }).click()
-    await expect(page.locator('.playback-time')).toHaveText('10:00:00 UTC')
+    await expect(page.locator('.playback-time')).toHaveText('04:00:00 MDT')
   })
 
   test('playback stops cleanly at the end of the flight', async ({ page }) => {
@@ -80,7 +80,7 @@ test.describe('upload and playback', () => {
     // 179 fixes * 5s = ~890s of flight time; at 60x that's ~15s of wall time.
     await page.waitForTimeout(16_000)
 
-    await expect(page.locator('.playback-time')).toHaveText('10:14:55 UTC')
+    await expect(page.locator('.playback-time')).toHaveText('04:14:55 MDT')
     await expect(page.getByRole('button', { name: 'Play' })).toBeVisible()
   })
 
@@ -93,15 +93,15 @@ test.describe('upload and playback', () => {
 
     const childCountBefore = await page.evaluate(() => {
       const map = document.querySelector('.map3d-container')?.firstElementChild
-      return map?.children.length ?? null
+      return map ? Array.from(map.children).filter((child) => !child.hasAttribute('data-drop-line')).length : null
     })
 
     await uploadSampleFlight(page)
 
-    await expect(page.locator('.playback-time')).toHaveText('10:00:00 UTC')
+    await expect(page.locator('.playback-time')).toHaveText('04:00:00 MDT')
     const childCountAfter = await page.evaluate(() => {
       const map = document.querySelector('.map3d-container')?.firstElementChild
-      return map?.children.length ?? null
+      return map ? Array.from(map.children).filter((child) => !child.hasAttribute('data-drop-line')).length : null
     })
     expect(childCountAfter).toBe(childCountBefore)
   })

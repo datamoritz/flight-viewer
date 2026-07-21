@@ -110,10 +110,10 @@ export function CameraControls({ map, markCameraAnimation }: CameraControlsProps
       >
         N
       </button>
-      <HoldButton label="Rotate left" title="Rotate left (hold to keep rotating)" onStep={rotate(-1)}>
+      <HoldButton label="Rotate left" title="Rotate left (hold to keep rotating)" onStep={rotate(1)}>
         ⟲
       </HoldButton>
-      <HoldButton label="Rotate right" title="Rotate right (hold to keep rotating)" onStep={rotate(1)}>
+      <HoldButton label="Rotate right" title="Rotate right (hold to keep rotating)" onStep={rotate(-1)}>
         ⟳
       </HoldButton>
       <HoldButton label="Tilt up" title="Tilt toward horizon (hold to keep tilting)" onStep={tilt(1)}>

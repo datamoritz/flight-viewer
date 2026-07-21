@@ -18,13 +18,13 @@ test.describe('graceful error handling', () => {
   test('a malformed file uploaded after a valid flight does not clear the existing flight', async ({ page }) => {
     await gotoWithMockedMaps(page)
     await uploadSampleFlight(page)
-    await expect(page.locator('.playback-time')).toHaveText('10:00:00 UTC')
+    await expect(page.locator('.playback-time')).toHaveText('04:00:00 MDT')
 
     await page.locator('input[type=file]').setInputFiles(MALFORMED_IGC_PATH)
 
     await expect(page.locator('.error-banner')).toBeVisible()
     // Previous flight is still loaded and controls still work.
-    await expect(page.locator('.playback-time')).toHaveText('10:00:00 UTC')
+    await expect(page.locator('.playback-time')).toHaveText('04:00:00 MDT')
     await expect(page.getByRole('button', { name: 'Play' })).toBeEnabled()
   })
 

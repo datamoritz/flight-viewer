@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useGoogleMapsScript } from './useGoogleMapsScript'
 import { useCameraAnimationGuard } from './cameraFollow'
 import { CameraControls } from './CameraControls'
@@ -7,6 +7,7 @@ import { playbackStore } from '../../playback/store'
 import { interpolateFix } from '../../playback/interpolate'
 import { computeCameraFit } from '../../utils/geo'
 import { buildVarioSegments, slicePointsUpTo, type TimedPathPoint } from '../../utils/vario'
+import type { FlightMoment } from '../../data/types'
 import type {
   LatLngAltitudeLiteral,
   Map3DElement,
@@ -23,6 +24,10 @@ const DEFAULT_CAMERA = {
 }
 
 const TRACK_STROKE_WIDTH = 2
+const DROP_LINE_WIDTH = 3
+const DROP_LINE_LIFETIME_MS = 20_000
+const DROP_LINE_INTERVAL_MS = 250
+const DROP_LINE_MAX_ALPHA = 0.22
 
 // The pilot marker is one screen-space marker content bundle, not a separate
 // React overlay, so the name and altitude stay glued to the red pointed tip.
@@ -53,6 +58,12 @@ interface TrackSegment {
   endMs: number
 }
 
+interface DropLine {
+  polyline: Polyline3DElement
+  timeMs: number
+  color: string
+}
+
 interface FollowOffset {
   lat: number
   lng: number
@@ -61,6 +72,10 @@ interface FollowOffset {
 
 export interface Map3DViewProps {
   apiKey: string | undefined
+  showDropCurtain: boolean
+  moments: FlightMoment[]
+  selectedMomentId: string | null
+  onSelectMoment: (momentId: string) => void
 }
 
 function makePositionWithOffset(pos: LatLngAltitudeLiteral, offset: FollowOffset): LatLngAltitudeLiteral {
@@ -77,6 +92,14 @@ function makeOffsetFromPosition(center: LatLngAltitudeLiteral, pos: LatLngAltitu
     lng: center.lng - pos.lng,
     altitude: (center.altitude ?? pos.altitude ?? 0) - (pos.altitude ?? 0),
   }
+}
+
+function colorWithAlpha(color: string, alpha: number): string {
+  if (!color.startsWith('#') || color.length !== 7) return color
+  const r = Number.parseInt(color.slice(1, 3), 16)
+  const g = Number.parseInt(color.slice(3, 5), 16)
+  const b = Number.parseInt(color.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`
 }
 
 function makePilotMarkerContent(pilotName: string, altitude: number): HTMLElement {
@@ -106,12 +129,24 @@ function makePilotMarkerContent(pilotName: string, altitude: number): HTMLElemen
   return root
 }
 
-export function Map3DView({ apiKey }: Map3DViewProps) {
+function makeMomentMarkerContent(moment: FlightMoment, selectedMomentId: string | null): HTMLElement {
+  const root = document.createElement('button')
+  root.type = 'button'
+  root.className = `map-moment-marker ${moment.id === selectedMomentId ? 'is-selected' : ''}`
+  root.setAttribute('aria-label', 'Flight comment')
+  return root
+}
+
+export function Map3DView({ apiKey, showDropCurtain, moments, selectedMomentId, onSelectMoment }: Map3DViewProps) {
   const { status, error: scriptError } = useGoogleMapsScript(apiKey)
   const containerRef = useRef<HTMLDivElement>(null)
   const maps3dRef = useRef<Maps3DLibrary | null>(null)
   const trackRef = useRef<TrackSegment[]>([])
+  const dropLinesRef = useRef<DropLine[]>([])
+  const momentMarkersRef = useRef<MarkerElement[]>([])
+  const momentSelectRef = useRef(onSelectMoment)
   const revealRef = useRef({ idx: 0, lastTimeMs: Number.NEGATIVE_INFINITY })
+  const lastDropLineTimeRef = useRef(Number.NEGATIVE_INFINITY)
   const pilotMarkerRef = useRef<MarkerElement | null>(null)
   const altitudeLabelRef = useRef<HTMLDivElement | null>(null)
   const followOffsetRef = useRef<FollowOffset>({ lat: 0, lng: 0, altitude: 0 })
@@ -120,8 +155,17 @@ export function Map3DView({ apiKey }: Map3DViewProps) {
   const [initError, setInitError] = useState<string | null>(null)
 
   const flight = usePlaybackStore((s) => s.flight)
+  const currentTimeMs = usePlaybackStore((s) => s.currentTimeMs)
+  const visibleMomentKey = useMemo(
+    () => moments.filter((moment) => moment.timeMs <= currentTimeMs).map((moment) => moment.id).join('|'),
+    [currentTimeMs, moments],
+  )
 
   const { markCameraAnimation, isCameraAnimating } = useCameraAnimationGuard(map)
+
+  useEffect(() => {
+    momentSelectRef.current = onSelectMoment
+  }, [onSelectMoment])
 
   // Create the Map3DElement once the bootstrap script + library are ready.
   useEffect(() => {
@@ -213,6 +257,9 @@ export function Map3DView({ apiKey }: Map3DViewProps) {
 
     for (const segment of trackRef.current) segment.polyline.remove()
     trackRef.current = []
+    for (const line of dropLinesRef.current) line.polyline.remove()
+    dropLinesRef.current = []
+    lastDropLineTimeRef.current = Number.NEGATIVE_INFINITY
     pilotMarkerRef.current?.remove()
     pilotMarkerRef.current = null
     altitudeLabelRef.current = null
@@ -223,7 +270,7 @@ export function Map3DView({ apiKey }: Map3DViewProps) {
 
     const maps3d = maps3dRef.current
 
-    trackRef.current = buildVarioSegments(flight.simplifiedFixes).map((segment) => {
+    trackRef.current = buildVarioSegments(flight.fixes).map((segment) => {
       const polyline = new maps3d.Polyline3DElement({
         path: [segment.points[0]],
         strokeColor: segment.color,
@@ -268,6 +315,36 @@ export function Map3DView({ apiKey }: Map3DViewProps) {
     })
   }, [map, flight, markCameraAnimation])
 
+  useEffect(() => {
+    if (!map || !maps3dRef.current) return
+    for (const marker of momentMarkersRef.current) marker.remove()
+    momentMarkersRef.current = []
+    const maps3d = maps3dRef.current
+    const visibleMomentIds = new Set(visibleMomentKey ? visibleMomentKey.split('|') : [])
+    for (const moment of moments) {
+      if (!visibleMomentIds.has(moment.id)) continue
+      const marker = new maps3d.MarkerElement({
+        position: { lat: moment.lat, lng: moment.lng, altitude: moment.altitude },
+        altitudeMode: 'ABSOLUTE',
+        anchorLeft: '-50%',
+        anchorTop: '-50%',
+        collisionBehavior: 'REQUIRED',
+      })
+      const content = makeMomentMarkerContent(moment, selectedMomentId)
+      content.addEventListener('click', (event) => {
+        event.stopPropagation()
+        momentSelectRef.current(moment.id)
+      })
+      marker.append(content)
+      map.appendChild(marker)
+      momentMarkersRef.current.push(marker)
+    }
+    return () => {
+      for (const marker of momentMarkersRef.current) marker.remove()
+      momentMarkersRef.current = []
+    }
+  }, [map, moments, selectedMomentId, visibleMomentKey])
+
   // Continuous per-frame sync loop. Reads the authoritative playback state fresh
   // every animation frame: reveals the track up to the current time, moves the
   // pilot marker, and glides the camera onto the pilot plus any saved pan
@@ -280,6 +357,12 @@ export function Map3DView({ apiKey }: Map3DViewProps) {
     let lastTs: number | null = null
     let lastMarkerWrite: { lat: number; lng: number; altitude: number } | null = null
     let lastAltitudeText = ''
+
+    const clearDropLines = () => {
+      for (const line of dropLinesRef.current) line.polyline.remove()
+      dropLinesRef.current = []
+      lastDropLineTimeRef.current = Number.NEGATIVE_INFINITY
+    }
 
     const updateReveal = (
       timeMs: number,
@@ -317,6 +400,47 @@ export function Map3DView({ apiKey }: Map3DViewProps) {
       }
     }
 
+    const updateDropLines = (timeMs: number, pos: { lat: number; lng: number; altitude: number }) => {
+      const maps3d = maps3dRef.current
+      if (!maps3d) return
+      if (!showDropCurtain) {
+        clearDropLines()
+        return
+      }
+      const activeSegment = trackRef.current[revealRef.current.idx]
+      const activeColor = activeSegment?.polyline.strokeColor ?? MARKER_ACCENT_COLOR
+
+      if (Math.abs(timeMs - lastDropLineTimeRef.current) >= DROP_LINE_INTERVAL_MS) {
+        lastDropLineTimeRef.current = timeMs
+        const polyline = new maps3d.Polyline3DElement({
+          path: [
+            { lat: pos.lat, lng: pos.lng, altitude: 0 },
+            { lat: pos.lat, lng: pos.lng, altitude: pos.altitude },
+          ],
+          strokeColor: colorWithAlpha(activeColor, DROP_LINE_MAX_ALPHA),
+          strokeWidth: DROP_LINE_WIDTH,
+          altitudeMode: 'ABSOLUTE',
+          drawsOccludedSegments: false,
+        })
+        polyline.setAttribute('data-drop-line', 'true')
+        map.appendChild(polyline)
+        dropLinesRef.current.push({ polyline, timeMs, color: activeColor })
+      }
+
+      const kept: DropLine[] = []
+      for (const line of dropLinesRef.current) {
+        const age = timeMs - line.timeMs
+        if (age < 0 || age > DROP_LINE_LIFETIME_MS) {
+          line.polyline.remove()
+          continue
+        }
+        const alpha = DROP_LINE_MAX_ALPHA * (1 - age / DROP_LINE_LIFETIME_MS)
+        line.polyline.strokeColor = colorWithAlpha(line.color, alpha)
+        kept.push(line)
+      }
+      dropLinesRef.current = kept
+    }
+
     const tick = (ts: number) => {
       rafId = requestAnimationFrame(tick)
       const dt = lastTs === null ? 16 : Math.min(ts - lastTs, 100)
@@ -328,6 +452,7 @@ export function Map3DView({ apiKey }: Map3DViewProps) {
       const pos = interpolateFix(flight.fixes, state.currentTimeMs)
 
       updateReveal(state.currentTimeMs, pos)
+      updateDropLines(state.currentTimeMs, pos)
 
       const markerMoved =
         !lastMarkerWrite ||
@@ -383,7 +508,7 @@ export function Map3DView({ apiKey }: Map3DViewProps) {
 
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-  }, [map, flight, isCameraAnimating])
+  }, [map, flight, isCameraAnimating, showDropCurtain])
 
   const overlayError = status === 'error' ? scriptError : initError
   const showOverlay = status !== 'ready' || Boolean(initError)

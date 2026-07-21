@@ -65,6 +65,28 @@ export function bearingDegrees(
   return (toDeg(Math.atan2(y, x)) + 360) % 360
 }
 
+export function cumulativeTrackDistanceMeters(fixes: Fix[]): number {
+  let distance = 0
+  for (let i = 1; i < fixes.length; i++) {
+    distance += haversineDistanceMeters(fixes[i - 1], fixes[i])
+  }
+  return distance
+}
+
+export function roughOptimizedFreeDistanceMeters(fixes: Fix[], maxSamples = 500): number {
+  if (fixes.length < 2) return 0
+  const stride = Math.max(1, Math.ceil(fixes.length / maxSamples))
+  const samples = fixes.filter((_, index) => index % stride === 0)
+  if (samples[samples.length - 1] !== fixes[fixes.length - 1]) samples.push(fixes[fixes.length - 1])
+  let best = 0
+  for (let i = 0; i < samples.length; i++) {
+    for (let j = i + 1; j < samples.length; j++) {
+      best = Math.max(best, haversineDistanceMeters(samples[i], samples[j]))
+    }
+  }
+  return best
+}
+
 /**
  * Computes a cinematic default camera (center/range/heading/tilt) that frames
  * the whole flight, used to fit the camera when a file is first loaded.

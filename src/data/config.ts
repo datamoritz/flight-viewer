@@ -1,0 +1,4 @@
+export const IGC_MAX_BYTES = 10 * 1024 * 1024
+export const PHOTO_MAX_BYTES = 25 * 1024 * 1024
+export const PHOTO_TOTAL_MAX_BYTES_PER_FLIGHT = 100 * 1024 * 1024
+export const COMMENT_MAX_LENGTH = 2000

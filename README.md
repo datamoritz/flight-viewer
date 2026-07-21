@@ -1,12 +1,13 @@
-# Paragliding Flight Viewer
+# Flight Viewer
 
 A browser-based 3D viewer for paragliding flights recorded as IGC files. Upload
 a flight, watch it fly back over real 3D satellite terrain, scrub through its
 altitude profile, and follow the pilot with a camera that respects however you
 choose to look at it.
 
-Everything runs client-side: an uploaded IGC file is parsed in the browser and
-never leaves it — there is no backend, no upload, no storage.
+IGC parsing and playback run in the browser. By default, the flight library is
+stored in IndexedDB. A production deployment can use the included
+`flight-viewer` API for PostgreSQL-backed flight data and server-hosted photos.
 
 ## Stack
 
@@ -14,6 +15,7 @@ never leaves it — there is no backend, no upload, no storage.
 - [Google Maps Platform 3D Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/3d-maps-overview) (`google.maps.maps3d`, currently an alpha/preview library)
 - Vitest for unit tests
 - oxlint for linting
+- FastAPI + PostgreSQL persistence API
 
 ## Setup
 
@@ -24,6 +26,23 @@ never leaves it — there is no backend, no upload, no storage.
    - Restrict the key to your local/deployed origins before using it anywhere but `localhost`.
 3. Copy `.env.example` to `.env.local` and put your key in `VITE_GOOGLE_MAPS_API_KEY`. This file is gitignored and never committed.
 4. `npm run dev`, then open the printed local URL.
+
+## Persistence API
+
+The `backend/` directory contains the production persistence API. It stores
+flight metadata, IGC text, comments, and photo metadata in PostgreSQL. Original
+photos and thumbnails live in a dedicated Docker volume on the server.
+
+For a local container smoke test:
+
+1. Copy `.env.docker.example` to `.env` and replace the database password.
+2. Run `docker compose up --build`.
+3. Set `VITE_DATA_API_URL=http://127.0.0.1:8003` in `.env.local`.
+
+The API is intentionally unauthenticated for now. Configure `ALLOWED_ORIGINS`
+to the exact deployed frontend origin and do not expose PostgreSQL publicly.
+Backend tests use `backend/requirements-dev.txt` and run with `pytest` from the
+`backend/` directory.
 
 ## Scripts
 

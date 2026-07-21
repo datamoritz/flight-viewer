@@ -3,8 +3,9 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import { usePlaybackStore } from '../../playback/usePlaybackStore'
 import { playbackStore } from '../../playback/store'
 import { useResizablePanel } from './useResizablePanel'
-import { denverTzAbbrev, formatDenverClock, formatDenverClockShort } from '../../utils/time'
+import { formatDenverClock, formatDenverClockShort } from '../../utils/time'
 import type { Fix, ParsedFlight } from '../../igc/types'
+import type { FlightMoment } from '../../data/types'
 
 const VIEW_WIDTH = 1000
 const VIEW_HEIGHT = 240
@@ -14,6 +15,7 @@ const PADDING_LEFT = 52
 const PADDING_RIGHT = 16
 const CHART_MAX_POINTS = 1200
 const GRID_STEP_M = 500
+const LABEL_SCALE_X = 0.74
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
@@ -70,7 +72,13 @@ function buildGeometry(flight: ParsedFlight): ChartGeometry {
   return { xForTime, yForAltitude, linePoints, areaPoints, gridLevels }
 }
 
-export function AltitudeProfile() {
+export interface AltitudeProfileProps {
+  moments: FlightMoment[]
+  selectedMomentId: string | null
+  onSelectMoment: (momentId: string) => void
+}
+
+export function AltitudeProfile({ moments, selectedMomentId, onSelectMoment }: AltitudeProfileProps) {
   const flight = usePlaybackStore((s) => s.flight)
   const currentTimeMs = usePlaybackStore((s) => s.currentTimeMs)
   const { height, onHandlePointerDown } = useResizablePanel()
@@ -128,7 +136,6 @@ export function AltitudeProfile() {
     window.addEventListener('pointerup', onUp)
   }
 
-  const tz = denverTzAbbrev(flight.startTimeMs)
   const cursorX = geometry.xForTime(currentTimeMs)
   const timeTickCount = 5
   const timeTicks = Array.from({ length: timeTickCount }, (_, i) => {
@@ -139,6 +146,7 @@ export function AltitudeProfile() {
     altitude,
     y: geometry.yForAltitude(altitude),
   }))
+  const labelX = (x: number) => x / LABEL_SCALE_X
 
   return (
     <div className="altitude-panel" style={{ height }}>
@@ -150,59 +158,84 @@ export function AltitudeProfile() {
       />
       <div className="altitude-panel-header">
         <span>Altitude profile</span>
-        <span className="altitude-panel-hint">Click or drag to scrub — times shown in {tz} (Denver)</span>
       </div>
-      <svg
-        ref={svgRef}
-        className="altitude-svg"
-        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-        preserveAspectRatio="none"
-        role="slider"
-        aria-label="Altitude profile — click or drag to jump to a point in the flight"
-        aria-valuemin={flight.startTimeMs}
-        aria-valuemax={flight.endTimeMs}
-        aria-valuenow={currentTimeMs}
-        aria-valuetext={`${formatDenverClock(currentTimeMs)} ${tz}`}
-        tabIndex={0}
-        onPointerDown={beginScrub}
-      >
-        {altGridlines.map((tick) => (
-          <g key={tick.altitude}>
-            <line
-              x1={PADDING_LEFT}
-              x2={VIEW_WIDTH - PADDING_RIGHT}
-              y1={tick.y}
-              y2={tick.y}
-              className="altitude-gridline"
-            />
-            <text x={PADDING_LEFT - 8} y={tick.y} className="altitude-axis-label" textAnchor="end">
-              {tick.altitude.toLocaleString()} m
+      <div className="altitude-chart-stage">
+        <svg
+          ref={svgRef}
+          className="altitude-svg"
+          viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+          preserveAspectRatio="none"
+          role="slider"
+          aria-label="Altitude profile — click or drag to jump to a point in the flight"
+          aria-valuemin={flight.startTimeMs}
+          aria-valuemax={flight.endTimeMs}
+          aria-valuenow={currentTimeMs}
+          aria-valuetext={formatDenverClock(currentTimeMs)}
+          tabIndex={0}
+          onPointerDown={beginScrub}
+        >
+          {altGridlines.map((tick) => (
+            <g key={tick.altitude}>
+              <line
+                x1={PADDING_LEFT}
+                x2={VIEW_WIDTH - PADDING_RIGHT}
+                y1={tick.y}
+                y2={tick.y}
+                className="altitude-gridline"
+              />
+              <text
+                x={labelX(PADDING_LEFT - 8)}
+                y={tick.y}
+                className="altitude-axis-label"
+                textAnchor="end"
+                transform={`scale(${LABEL_SCALE_X} 1)`}
+              >
+                {tick.altitude.toLocaleString()} m
+              </text>
+            </g>
+          ))}
+
+          {staticChart}
+
+          {timeTicks.map((tick) => (
+            <text
+              key={tick.timeMs}
+              x={labelX(clamp(tick.x, PADDING_LEFT + 20, VIEW_WIDTH - PADDING_RIGHT - 20))}
+              y={VIEW_HEIGHT - 8}
+              className="altitude-axis-label"
+              textAnchor="middle"
+              transform={`scale(${LABEL_SCALE_X} 1)`}
+            >
+              {formatDenverClockShort(tick.timeMs)}
             </text>
-          </g>
-        ))}
+          ))}
 
-        {staticChart}
-
-        {timeTicks.map((tick) => (
-          <text
-            key={tick.timeMs}
-            x={clamp(tick.x, PADDING_LEFT + 20, VIEW_WIDTH - PADDING_RIGHT - 20)}
-            y={VIEW_HEIGHT - 8}
-            className="altitude-axis-label"
-            textAnchor="middle"
-          >
-            {formatDenverClockShort(tick.timeMs)}
-          </text>
-        ))}
-
-        <line
-          x1={cursorX}
-          x2={cursorX}
-          y1={PADDING_TOP}
-          y2={VIEW_HEIGHT - PADDING_BOTTOM}
-          className="altitude-cursor"
-        />
-      </svg>
+          <line
+            x1={cursorX}
+            x2={cursorX}
+            y1={PADDING_TOP}
+            y2={VIEW_HEIGHT - PADDING_BOTTOM}
+            className="altitude-cursor"
+          />
+        </svg>
+        {moments.map((moment) => {
+          const x = (geometry.xForTime(moment.timeMs) / VIEW_WIDTH) * 100
+          const y = (geometry.yForAltitude(moment.altitude) / VIEW_HEIGHT) * 100
+          return (
+            <button
+              key={moment.id}
+              type="button"
+              className={`altitude-moment-marker ${moment.id === selectedMomentId ? 'is-selected' : ''}`}
+              style={{ left: `${x}%`, top: `${y}%` }}
+              onPointerDown={(event) => {
+                event.stopPropagation()
+                onSelectMoment(moment.id)
+              }}
+              aria-label="Flight comment"
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }

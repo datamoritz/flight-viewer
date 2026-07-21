@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 
 export const MIN_PANEL_HEIGHT = 140
 export const MAX_PANEL_HEIGHT = 440
-const DEFAULT_PANEL_HEIGHT = 220
+const DEFAULT_PANEL_HEIGHT = MAX_PANEL_HEIGHT
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
