@@ -318,7 +318,7 @@ select {
   right: 1rem;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   padding: 8px;
   background: var(--glass-bg);
@@ -357,7 +357,12 @@ select {
   background: rgba(239, 68, 68, 0.28);
 }
 
-.fullscreen-icon { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.camera-control-button:first-child {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.compass-icon { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; }
 
 /* ---------- Floating glass controls ---------- */
 
@@ -493,6 +498,9 @@ select {
   margin: 0;
   font-size: 1rem;
   line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .flight-count {
@@ -500,7 +508,7 @@ select {
   min-width: 1.35rem;
   height: 1.35rem;
   padding: 0 0.35rem;
-  margin-left: 0.3rem;
+  margin-left: 0;
   place-items: center;
   border-radius: 999px;
   color: var(--ink-dim);
@@ -530,8 +538,8 @@ select {
 }
 
 .flight-library-add {
-  width: 2rem;
-  height: 2rem;
+  width: 1.35rem;
+  height: 1.35rem;
   padding: 0;
   border: 1px solid var(--glass-border);
   border-radius: 50%;
@@ -540,15 +548,15 @@ select {
   cursor: pointer;
   display: inline-grid;
   place-items: center;
-  flex: 0 0 2rem;
+  flex: 0 0 1.35rem;
   position: relative;
 }
 .flight-library-add:hover { color: var(--ink); background: rgba(255, 255, 255, 0.1); }
 .flight-library-add span,
 .flight-library-add span::after {
   display: block;
-  width: 0.82rem;
-  height: 2px;
+  width: 0.55rem;
+  height: 1.5px;
   border-radius: 2px;
   background: currentColor;
 }

@@ -48,13 +48,16 @@ export function FlightLibraryPanel({
     <section className="flight-library-panel" aria-label="Flight library">
       <div className="flight-library-header">
         <div>
-          <h2>Flights <span className="flight-count">{flights.length}</span></h2>
+          <h2>
+            Flights
+            <span className="flight-count">{flights.length}</span>
+            <button type="button" className="flight-library-add" onClick={() => inputRef.current?.click()} disabled={isBusy} aria-label="Add IGC flight" title="Add IGC flight">
+              <span aria-hidden="true" />
+            </button>
+          </h2>
           <p>Drag and drop an IGC file or click the add button.</p>
         </div>
         <div className="flight-library-header-actions">
-          <button type="button" className="flight-library-add" onClick={() => inputRef.current?.click()} disabled={isBusy} aria-label="Add IGC flight" title="Add IGC flight">
-            <span aria-hidden="true" />
-          </button>
           <button type="button" className="panel-close-button" onClick={onClose} aria-label="Close flights panel">
             ×
           </button>

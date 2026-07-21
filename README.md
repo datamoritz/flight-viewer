@@ -76,7 +76,7 @@ the translucent altitude panel to scrub; drag its top handle to resize it.
 The camera **always follows** the pilot — the pilot stays fixed on screen while
 the landscape moves around it. You can freely change the *viewpoint* at any
 time and it sticks while following: orbit/tilt/zoom with the mouse or trackpad,
-or use the on-screen camera controls (rotate, tilt, zoom, fullscreen — click or
+or use the on-screen camera controls (rotate, tilt, zoom, face-north — click or
 hold to repeat) top-right, which work regardless of pointer-gesture support. A
 pan chooses a new fixed screen position for the pilot, and playback keeps
 following from there.

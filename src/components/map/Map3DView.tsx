@@ -521,7 +521,7 @@ export function Map3DView({ apiKey, showDropCurtain, trackStrokeWidth, moments, 
   return (
     <div className="map3d-root">
       <div ref={containerRef} className="map3d-container" />
-      <CameraControls map={map} />
+      <CameraControls map={map} markCameraAnimation={markCameraAnimation} />
       {showOverlay && (
         <div className="map3d-status-overlay" role="status">
           {overlayError ? (
